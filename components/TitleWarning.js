@@ -6,6 +6,7 @@ import {
     Keyboard,
     TouchableWithoutFeedback
 } from 'react-native'
+import validator from 'validator';
 import { Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import SqliteHelper from '../sqlite.helper'
@@ -45,7 +46,7 @@ export default class TitleWarning extends Component {
 }
 create() {
     this.getTitle();
-    if (this.state.value == null || this.state.value == '') {
+    if (validator.isEmpty(this.state.value)) {
         Alert.alert(
             'Thêm thất bại',
             'Vui lòng không để trống trường cảnh báo',
@@ -56,7 +57,6 @@ create() {
             'Dữ liệu đã tồn tại',
         )
     } else {
-        // string.charAt(0).toUpperCase() + string.slice(1);
         // SqliteHelper.addTitleWarning(this.state.value)
         // this.props.navigation.navigate('Warning')
         console.log('a')
@@ -77,7 +77,7 @@ render() {
                                 placeholder="Nhập cảnh báo của bạn"
                                 placeholderTextColor="gray"
                                 returnKeyType='next'
-                                onChangeText={value => this.setState({ value })}
+                                onChangeText={value => this.setState({value})}
                                 value={this.state.value}
                             ></TextInput>
                             <View style={styles.buttons}>
