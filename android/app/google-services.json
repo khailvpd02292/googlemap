@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "667967179957",
+    "firebase_url": "https://reactnative-6e852.firebaseio.com",
+    "project_id": "reactnative-6e852",
+    "storage_bucket": "reactnative-6e852.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:667967179957:android:547e32620e13229ec782fc",
+        "android_client_info": {
+          "package_name": "com.googlemapwarning"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "667967179957-398b30grtm15qfi2qi7jqq8lbo6esvub.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArhWAXHEkhAcyRZxgKx4f_SGBvPs-EaYQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "667967179957-398b30grtm15qfi2qi7jqq8lbo6esvub.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
