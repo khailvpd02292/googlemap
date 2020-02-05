@@ -10,6 +10,7 @@ import { Dropdown } from 'react-native-material-dropdown';
 import Geolocation from '@react-native-community/geolocation';
 import SqliteHelper from '../sqlite.helper'
 SqliteHelper.openDB();
+console.disableYellowBox = true;
 export default class Warning extends Component {
 
     constructor(props) {
@@ -19,9 +20,20 @@ export default class Warning extends Component {
             latitude: '',
             longitude: '',
             FlatListTitle: [],
+            FlatListItems:[],
+            title: '',
         };
         this.create =  this.create.bind(this)
-
+    }
+   componentWillMount = async () => {
+        let listTemp = [];
+        let temp = await SqliteHelper.getWarning();
+        for (let i = 0; i < temp.rows.length; i++) {
+            listTemp.push(temp.rows.item(i));
+        };
+        this.setState({
+            FlatListItems: listTemp
+        });
     }
     UNSAFE_componentWillMount = async () => {
         let listTemp = [];
@@ -45,11 +57,23 @@ export default class Warning extends Component {
             { enableHighAccuracy: true, timeout: 1000, maximumAge: 1000 }
         );
     }
-    componentWillUpdate= async()=>{
+    UNSAFE_componentWillUpdate= async()=>{
         await this.UNSAFE_componentWillMount();
      }
     create() {
-        if (this.state.value == null || this.state.value == '') {
+        const {FlatListItems} = this.state;
+        const {latitude} = this.state;
+        const {value} = this.state;
+
+        for (let i = 0; i < FlatListItems.length; i++) {
+            if (FlatListItems[i].value == value && latitude == FlatListItems[i].latitude) {
+                return  Alert.alert(
+                    'Thêm thất bại',
+                    'Vị trí đã được đánh dấu',
+                );
+            }
+        }
+        if (value == null || value == '') {
             Alert.alert(
                 'Thêm thất bại',
                 'Vui lòng chọn cảnh báo',
@@ -57,6 +81,7 @@ export default class Warning extends Component {
         } else {
             SqliteHelper.addWarning(this.state.value, this.state.latitude, this.state.longitude),
                 this.props.navigation.navigate('Map')
+            // console.log('tc')
         }
     }
 
@@ -108,20 +133,6 @@ export default class Warning extends Component {
                                 onPress={this.create} ></Button>
                         </View>
 
-                        {/* <View style={{ flex: 1, flexDirection: "row" }}>
-                            <View style={{ flex: 1 }}>
-                                <FlatList
-                                    data={this.state.FlatListTitle}
-                                    // ItemSeparatorComponent={this.ListViewItemSeparator}
-                                    keyExtractor={(item, index) => index.toString()}
-                                    renderItem={({ item }) => (
-                                        <View>
-                                            <Text>Title: {item.value}</Text>
-                                        </View>
-                                    )}
-                                />
-                            </View>
-                        </View> */}
                     </View>
                 </View>
 

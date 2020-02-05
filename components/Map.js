@@ -13,11 +13,12 @@ export default class Map extends Component {
         this.state = {
             latitude: 0,
             longitude: 0,
+            error :'',
             FlatListItems: [],
             FlatListTitle: [],
         }
     }
-    UNSAFE_componentWillMount = async () => {
+    getWarning = async () => {
         let listTemp = [];
         let temp = await SqliteHelper.getWarning();
         for (let i = 0; i < temp.rows.length; i++) {
@@ -27,7 +28,10 @@ export default class Map extends Component {
             FlatListItems: listTemp
         });
     }
-    componentWillMount = async () => {
+      componentWillUnmount() {
+        this.focusListener.remove();
+      }   
+      getTitle = async() => {
         let listTemps = [];
         let temp = await SqliteHelper.getTitle();
         for (let i = 0; i < temp.rows.length; i++) {
@@ -36,9 +40,8 @@ export default class Map extends Component {
         this.setState({
             FlatListTitle: listTemps
         });
-    }
-
-    componentDidMount() {
+      }
+      location(){
         Geolocation.getCurrentPosition(position => {
             this.setState({
                 latitude: position.coords.latitude,
@@ -49,12 +52,15 @@ export default class Map extends Component {
             error => this.setState({ error: error.message }),
             { enableHighAccuracy: true, timeout: 1000, maximumAge: 1000 }
         );
-
+      }
+    componentDidMount() {
+        const { navigation } = this.props;
+        this.focusListener = navigation.addListener('didFocus', () => {
+          this.getTitle();  
+          this.getWarning();     
+        });
+        this.location();
     }
-
-    // componentWillUpdate = async () => {
-    //     await this.UNSAFE_componentWillMount();
-    // }
 
     render() {
         const logo = {
@@ -77,31 +83,38 @@ export default class Map extends Component {
                         }}
                     >
                         <Marker coordinate={this.state} title={"Vị trí của bạn"} >
-                        
                         </Marker>
                         {FlatListItems.length > 0 && FlatListItems.map(marker => (
-                            <Marker
+                            <Marker key={marker.id}
                                 coordinate={marker}
                                 pinColor='blue'
                                 title={marker.value}
-                                // image={require('../image/video_camera.png')}
+                            // image={require('../image/video_camera.png')}
                             />
                         ))}
+                       
                     </MapView>
                 </View>
-                <View style={{ flex: 1, flexDirection: "row" }}>
+                <View style={{ flex: 0.8, flexDirection: "row" }}>
 
                     <View style={{ flex: 1 }}>
-                        {/* <Button title="Vị trí của bạn"
-                            onPress={() =>
-                                this.componentDidMount()
-                            } ></Button> */}
+                      <Icon
+                                raised
+                                name='compass'
+                                type='font-awesome'
+                                color='gray'
+                                size={20}
+                                onPress={()=>{
+                                    this.location()
+                                }}
+                            />
                     </View>
                     <View style={{ flex: 1.5 }}>
                         <View style={{ alignItems: 'center', height: 28, flexDirection: 'row' }}>
                             <View style={{ flex: 16, alignItems: "center", justifyContent: 'center' }}>
                                 <Text style={{ color: 'blue', fontWeight: 'bold' }}>Biểu tượng cảnh báo</Text>
                             </View>
+                            
                             <View style={{ flex: 1, paddingTop: 5 }}>
                                 <TouchableOpacity
                                     onPress={() =>
@@ -118,9 +131,7 @@ export default class Map extends Component {
                                     />
                                 </TouchableOpacity>
                             </View>
-
                         </View>
-
                         <FlatList
                             data={FlatListTitle}
                             keyExtractor={(item, index) => index.toString()}
@@ -143,7 +154,6 @@ export default class Map extends Component {
                                 </ScrollView>
                             )}
                         />
-
                     </View>
 
                 </View>

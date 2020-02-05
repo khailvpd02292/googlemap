@@ -4,13 +4,14 @@ import {
     Alert,
     KeyboardAvoidingView,
     Keyboard,
-    TouchableWithoutFeedback
+    TouchableWithoutFeedback, TouchableOpacity
 } from 'react-native'
 import validator from 'validator';
 import { Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import SqliteHelper from '../sqlite.helper'
 import { FlatList } from 'react-native-gesture-handler';
+import AwesomeAlert from 'react-native-awesome-alerts';
 SqliteHelper.openDB();
 export default class TitleWarning extends Component {
 
@@ -19,9 +20,10 @@ export default class TitleWarning extends Component {
         this.state = {
             value: '',
             FlatListTitle: [],
-            title:''
+            title: '',
         },
             this.create = this.create.bind(this);
+       
     }
     UNSAFE_componentWillMount = async () => {
         let listTemp = [];
@@ -32,19 +34,21 @@ export default class TitleWarning extends Component {
         this.setState({
             FlatListTitle: listTemp
         });
-
     }
+    
+    clearText = () => {
+        this._textInput.setNativeProps({text: ''});
+      }
     create() {
         let strims = this.state.value.trim();
         let cutspace = (strims.substring(0, 1).toUpperCase() + strims.substring(1).toLowerCase());
         for (let i = 0; i < this.state.FlatListTitle.length; i++) {
-            if (this.state.FlatListTitle[i].value == cutspace) {
-                this.state.title = this.state.FlatListTitle[i].value;
-                Alert.alert(
+            if (this.state.FlatListTitle[i].value == cutspace) {         
+                return (Alert.alert(
                     'Thêm thất bại',
                     'Dữ liệu đã tồn tại',
-                )
-                return this.state.title;
+                ),
+                this.clearText() ) ;
             }
         }
         if (validator.isEmpty(cutspace) || cutspace == '') {
@@ -53,15 +57,31 @@ export default class TitleWarning extends Component {
                 'Vui lòng không để trống trường cảnh báo',
             )
         } else {
-            SqliteHelper.addTitleWarning(cutspace)
-            this.props.navigation.navigate('Warning')
+            // SqliteHelper.addTitleWarning(cutspace)
+            // this.props.navigation.navigate('Warning')
+            Alert.alert(
+                'Thông báo',
+                'Bạn có chắc chắn muốn thêm dữ liệu',
+                [
+                  {
+                    text: 'Cancel',
+                    style: 'cancel',
+                  },
+                  {text: 'OK', onPress: () => {
+                    SqliteHelper.addTitleWarning(cutspace)
+                    this.props.navigation.navigate('Warning')
+                  }},
+                ],
+                {cancelable: false},
+              );
         }
- }
-
+    }
+    
     render() {
         var imagebackgrouds = {
             uri: "https://redpithemes.com/Documentation/assets/img/page_bg/page_bg_blur02.jpg"
         };
+        const { showAlert } = this.state;
         return (
             <View>
                 <ImageBackground source={imagebackgrouds} style={{ width: '100%', height: '100%' }} >
@@ -74,6 +94,7 @@ export default class TitleWarning extends Component {
                                     returnKeyType='next'
                                     onChangeText={value => this.setState({ value })}
                                     value={this.state.value}
+                                    ref={component => this._textInput = component}
                                 ></TextInput>
                                 <View style={styles.buttons}>
                                     <Button
@@ -108,5 +129,22 @@ const styles = StyleSheet.create({
         width: '90%',
         marginLeft: 20,
         marginBottom: 10
+    },
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#fff',
+    },
+    button: {
+        margin: 10,
+        paddingHorizontal: 10,
+        paddingVertical: 7,
+        borderRadius: 5,
+        backgroundColor: "#AEDEF4",
+    },
+    text: {
+        color: '#fff',
+        fontSize: 15
     }
 })
