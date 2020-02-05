@@ -12,7 +12,6 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import SqliteHelper from '../sqlite.helper'
 import { FlatList } from 'react-native-gesture-handler';
 SqliteHelper.openDB();
-let title =null;
 export default class TitleWarning extends Component {
 
     constructor(props) {
@@ -20,6 +19,7 @@ export default class TitleWarning extends Component {
         this.state = {
             value: '',
             FlatListTitle: [],
+            title:''
         },
             this.create = this.create.bind(this);
     }
@@ -34,66 +34,60 @@ export default class TitleWarning extends Component {
         });
 
     }
-
-    getTitle() {  
-        console.log(this.state.FlatListTitle.length)
+    create() {
+        let strims = this.state.value.trim();
+        let cutspace = (strims.substring(0, 1).toUpperCase() + strims.substring(1).toLowerCase());
         for (let i = 0; i < this.state.FlatListTitle.length; i++) {
-            if (this.state.FlatListTitle[i].value === this.state.value) {
-                title =this.state.FlatListTitle[i].value;
-                break;
+            if (this.state.FlatListTitle[i].value == cutspace) {
+                this.state.title = this.state.FlatListTitle[i].value;
+                Alert.alert(
+                    'Thêm thất bại',
+                    'Dữ liệu đã tồn tại',
+                )
+                return this.state.title;
             }
-    }   
-}
-create() {
-    this.getTitle();
-    if (validator.isEmpty(this.state.value)) {
-        Alert.alert(
-            'Thêm thất bại',
-            'Vui lòng không để trống trường cảnh báo',
-        )
-    }else if(title == this.state.value){      
-        Alert.alert(
-            'Thêm thất bại',
-            'Dữ liệu đã tồn tại',
-        )
-    } else {
-        // SqliteHelper.addTitleWarning(this.state.value)
-        // this.props.navigation.navigate('Warning')
-        console.log('a')
-    }
-}
+        }
+        if (validator.isEmpty(cutspace) || cutspace == '') {
+            Alert.alert(
+                'Thêm thất bại',
+                'Vui lòng không để trống trường cảnh báo',
+            )
+        } else {
+            SqliteHelper.addTitleWarning(cutspace)
+            this.props.navigation.navigate('Warning')
+        }
+ }
 
-render() {
-    var imagebackgrouds = {
-        uri: "https://redpithemes.com/Documentation/assets/img/page_bg/page_bg_blur02.jpg"
-    };
-    return (
-        <View>
-            <ImageBackground source={imagebackgrouds} style={{ width: '100%', height: '100%' }} >
-                <TouchableWithoutFeedback style={{ flex: 1, flexDirection: 'column' }} onPress={Keyboard.dismiss} >
-                    <View style={{ flex: 1, flexDirection: 'column' }}>
-                        <View style={{ flex: 2, marginTop: 40 }}>
-                            <TextInput style={styles.inputs}
-                                placeholder="Nhập cảnh báo của bạn"
-                                placeholderTextColor="gray"
-                                returnKeyType='next'
-                                onChangeText={value => this.setState({value})}
-                                value={this.state.value}
-                            ></TextInput>
-                            <View style={styles.buttons}>
-                                <Button
-                                    onPress={this.create}
-                                    title="Thêm mới"></Button>
+    render() {
+        var imagebackgrouds = {
+            uri: "https://redpithemes.com/Documentation/assets/img/page_bg/page_bg_blur02.jpg"
+        };
+        return (
+            <View>
+                <ImageBackground source={imagebackgrouds} style={{ width: '100%', height: '100%' }} >
+                    <TouchableWithoutFeedback style={{ flex: 1, flexDirection: 'column' }} onPress={Keyboard.dismiss} >
+                        <View style={{ flex: 1, flexDirection: 'column' }}>
+                            <View style={{ flex: 2, marginTop: 40 }}>
+                                <TextInput style={styles.inputs}
+                                    placeholder="Nhập cảnh báo của bạn"
+                                    placeholderTextColor="gray"
+                                    returnKeyType='next'
+                                    onChangeText={value => this.setState({ value })}
+                                    value={this.state.value}
+                                ></TextInput>
+                                <View style={styles.buttons}>
+                                    <Button
+                                        onPress={this.create}
+                                        title="Thêm mới"></Button>
+                                </View>
                             </View>
-
                         </View>
-                    </View>
-                </TouchableWithoutFeedback>
+                    </TouchableWithoutFeedback>
 
-            </ImageBackground>
-        </View>
-    )
-}
+                </ImageBackground>
+            </View>
+        )
+    }
 }
 
 const styles = StyleSheet.create({

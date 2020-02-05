@@ -11,16 +11,7 @@ import Geolocation from '@react-native-community/geolocation';
 import SqliteHelper from '../sqlite.helper'
 SqliteHelper.openDB();
 export default class Warning extends Component {
-    UNSAFE_componentWillMount = async () => {
-        let listTemp = [];
-        let temp = await SqliteHelper.getTitleWarning();
-        for (let i = 0; i < temp.rows.length; i++) {
-            listTemp.push(temp.rows.item(i));
-        };
-        this.setState({
-            FlatListTitle: listTemp
-        });
-    }
+
     constructor(props) {
         super(props);
         this.state = {
@@ -32,8 +23,17 @@ export default class Warning extends Component {
         this.create =  this.create.bind(this)
 
     }
+    UNSAFE_componentWillMount = async () => {
+        let listTemp = [];
+        let temp = await SqliteHelper.getTitleWarning();
+        for (let i = 0; i < temp.rows.length; i++) {
+            listTemp.push(temp.rows.item(i));
+        };
+        this.setState({
+            FlatListTitle: listTemp
+        });
+    }
     componentDidMount() {
-
         Geolocation.getCurrentPosition(position => {
             this.setState({
                 latitude: position.coords.latitude,

@@ -12,14 +12,14 @@ export default class SqliteHelper {
   }
 
   static openDB() {
-    db = SQLite.openDatabase({name: "dulieu2", createFromLocation: "~data/mapwarning.db"}, this.okCallback, this.errorCallback);
+    db = SQLite.openDatabase({name: "dulieu3", createFromLocation: "~data/mapwarning.db"}, this.okCallback, this.errorCallback);
     return db;
   }
 
   static getWarning = () => {
     return new Promise(function (resolve, reject) {
       db.transaction( tx => {
-        var sql = "SELECT * FROM map";
+        var sql = "SELECT * FROM mapwarning";
         tx.executeSql(sql, [], (tx, results) => {
           resolve(results);
         });
@@ -30,7 +30,7 @@ export default class SqliteHelper {
   static getTitle = () => {
     return new Promise(function (resolve, reject) {
       db.transaction( tx => {
-        var sql = "SELECT DISTINCT value FROM map";
+        var sql = "SELECT DISTINCT value FROM mapwarning ORDER BY value ASC";
         // console.log('completed')
         tx.executeSql(sql, [], (tx, results) => {
           resolve(results);
@@ -42,7 +42,7 @@ export default class SqliteHelper {
   static getTitleWarning = () => {
     return new Promise(function (resolve, reject) {
       db.transaction( tx => {
-        var sql = "SELECT * FROM warnings";
+        var sql = "SELECT * FROM warning ORDER BY value ASC";
         tx.executeSql(sql, [], (tx, results) => {
           resolve(results);
         });
@@ -52,7 +52,7 @@ export default class SqliteHelper {
   static async addWarning(value,latitude,longitude)  {
     return await new Promise(function (resolve, reject){
       db.transaction(tx => {
-        var sql = "INSERT INTO map (value,latitude,longitude) VALUES (?,?,?)";
+        var sql = "INSERT INTO mapwarning (value,latitude,longitude) VALUES (?,?,?)";
         tx.executeSql(sql, [value,latitude,longitude], (tx, results) => {
           resolve(results);
         });
@@ -63,7 +63,7 @@ export default class SqliteHelper {
   static async addTitleWarning(value)  {
     return await new Promise(function (resolve, reject){
       db.transaction(tx => {
-        var sql = "INSERT INTO warnings (value) VALUES (?)";
+        var sql = "INSERT INTO warning (value) VALUES (?)";
         console.log('success')
         tx.executeSql(sql, [value], (tx, results) => {
           resolve(results);

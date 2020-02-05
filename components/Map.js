@@ -27,7 +27,7 @@ export default class Map extends Component {
             FlatListItems: listTemp
         });
     }
-    componentWillMount= async () => {
+    componentWillMount = async () => {
         let listTemps = [];
         let temp = await SqliteHelper.getTitle();
         for (let i = 0; i < temp.rows.length; i++) {
@@ -52,18 +52,18 @@ export default class Map extends Component {
 
     }
 
-    componentWillUpdate= async()=>{
-       await this.UNSAFE_componentWillMount();
-    }
+    // componentWillUpdate = async () => {
+    //     await this.UNSAFE_componentWillMount();
+    // }
 
     render() {
         const logo = {
-            uri: "https://www.flaticon.com/authors/smashicons"
+            uri: "https://www.paracelsoft.com/images/cmssite/img/PPE.png"
         };
         const { FlatListItems } = this.state;
         const { latitude } = this.state;
         const { longitude } = this.state;
-        const {FlatListTitle} = this.state;
+        const { FlatListTitle } = this.state;
         return (
             <View style={{ flex: 1 }}>
                 <View style={{ flex: 3, backgroundColor: 'white' }}>
@@ -76,24 +76,27 @@ export default class Map extends Component {
                             longitudeDelta: 0.01,
                         }}
                     >
-                        <Marker coordinate={this.state} title={"Vị trí của bạn"} ></Marker>
+                        <Marker coordinate={this.state} title={"Vị trí của bạn"} >
+                        
+                        </Marker>
                         {FlatListItems.length > 0 && FlatListItems.map(marker => (
                             <Marker
                                 coordinate={marker}
                                 pinColor='blue'
                                 title={marker.value}
+                                // image={require('../image/video_camera.png')}
                             />
                         ))}
                     </MapView>
                 </View>
                 <View style={{ flex: 1, flexDirection: "row" }}>
 
-                    {/* <View style={{ flex: 1 }}>
-                        <Button title="Vị trí của bạn"
+                    <View style={{ flex: 1 }}>
+                        {/* <Button title="Vị trí của bạn"
                             onPress={() =>
                                 this.componentDidMount()
-                            } ></Button>
-                    </View> */}
+                            } ></Button> */}
+                    </View>
                     <View style={{ flex: 1.5 }}>
                         <View style={{ alignItems: 'center', height: 28, flexDirection: 'row' }}>
                             <View style={{ flex: 16, alignItems: "center", justifyContent: 'center' }}>
@@ -117,12 +120,12 @@ export default class Map extends Component {
                             </View>
 
                         </View>
-                       
-                            <FlatList
-                                data={FlatListTitle}
-                                keyExtractor={(item, index) => index.toString()}
-                                renderItem={({ item }) => (
-                                    <ScrollView>
+
+                        <FlatList
+                            data={FlatListTitle}
+                            keyExtractor={(item, index) => index.toString()}
+                            renderItem={({ item }) => (
+                                <ScrollView>
                                     <View style={{ height: 21, flexDirection: 'row' }}>
                                         <View style={{ flex: 1.5, justifyContent: 'center', alignItems: 'center' }}>
                                             <Icon
@@ -133,14 +136,14 @@ export default class Map extends Component {
                                                 size={16} />
                                         </View>
                                         <View style={{ flex: 9.5, justifyContent: 'center' }}>
-                                            <Text style={{ alignItems: "center" }}>{item.value}</Text>
+                                            <Text style={{ alignItems: "center" }}>{item.value.substring(0, 1).toUpperCase() + item.value.substring(1)}</Text>
                                         </View>
 
                                     </View>
-                                    </ScrollView>
-                                )}
-                            />
-                            
+                                </ScrollView>
+                            )}
+                        />
+
                     </View>
 
                 </View>
