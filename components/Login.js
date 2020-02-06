@@ -5,11 +5,9 @@ import {
     KeyboardAvoidingView,
     Keyboard,
     TouchableWithoutFeedback
-    // TouchableWithoutFeedback
 } from 'react-native'
 import { Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
-// import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 export default class Login extends Component {
     render() {
         var imagebackgrouds = {
@@ -24,7 +22,6 @@ export default class Login extends Component {
                 <ImageBackground source={imagebackgrouds} style={{ width: '100%', height: '100%' }} >
                     <TouchableWithoutFeedback style={{ flex: 1, flexDirection: 'column' }} onPress={Keyboard.dismiss} >
                         <View style={{ flex: 1, flexDirection: 'column' }}>
-                            {/* <KeyboardAvoidingView behavior='padding' style={{ flex: 1, flexDirection: 'column' }}> */}
                             <View style={{ flex: 1,justifyContent:"flex-end"}}>
                                 <Image source={logo} style={{ width: '60%', height: '60%', marginLeft:80}}></Image>
                             </View>
@@ -33,15 +30,12 @@ export default class Login extends Component {
                                     placeholder="Nhập email của bạn"
                                     placeholderTextColor="gray"
                                     returnKeyType='next'
-                                // autoFocus={true}
                                 ></TextInput>
                                 <TextInput style={styles.inputs}
                                     placeholder="Nhập password của bạn"
                                     placeholderTextColor="gray"
                                     secureTextEntry={true}
-
                                 ></TextInput>
-
                                 <View style={styles.buttons}>
                                     <Button
                                         onPress={() =>
@@ -56,17 +50,10 @@ export default class Login extends Component {
                                         }}
                                         title="Đăng ký"></Button>
                                 </View>
-                                {/* <Button
-                                title="Solid Button"
-                            /> */}
-
                             </View>
-
-                            {/* </KeyboardAvoidingView> */}
                         </View>
                     </TouchableWithoutFeedback>
                 </ImageBackground>
-
             </View >
         )
     }

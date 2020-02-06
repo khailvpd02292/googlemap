@@ -11,7 +11,6 @@ import { Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import SqliteHelper from '../sqlite.helper'
 import { FlatList } from 'react-native-gesture-handler';
-import AwesomeAlert from 'react-native-awesome-alerts';
 SqliteHelper.openDB();
 export default class TitleWarning extends Component {
 
@@ -25,6 +24,7 @@ export default class TitleWarning extends Component {
             this.create = this.create.bind(this);
        
     }
+
     UNSAFE_componentWillMount = async () => {
         let listTemp = [];
         let temp = await SqliteHelper.getTitleWarning();
@@ -57,8 +57,6 @@ export default class TitleWarning extends Component {
                 'Vui lòng không để trống trường cảnh báo',
             )
         } else {
-            // SqliteHelper.addTitleWarning(cutspace)
-            // this.props.navigation.navigate('Warning')
             Alert.alert(
                 'Thông báo',
                 'Bạn có chắc chắn muốn thêm dữ liệu',
@@ -129,22 +127,6 @@ const styles = StyleSheet.create({
         width: '90%',
         marginLeft: 20,
         marginBottom: 10
-    },
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#fff',
-    },
-    button: {
-        margin: 10,
-        paddingHorizontal: 10,
-        paddingVertical: 7,
-        borderRadius: 5,
-        backgroundColor: "#AEDEF4",
-    },
-    text: {
-        color: '#fff',
-        fontSize: 15
     }
 })
+

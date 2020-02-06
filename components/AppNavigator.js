@@ -6,24 +6,28 @@ import Map from './Map';
 import Warning from './Warning';
 import TitleWarning from './TitleWarning';
 const AppNavi = createStackNavigator({
-  Login: {
-    screen: Login,
-    navigationOptions: {
-      headerShown: false
-    }
-  },
+  // Login: {
+  //   screen: Login,
+  //   navigationOptions: {
+  //     headerShown: false
+  //   }
+  // },
+  // Map: {
+  //   screen: Map,
+  //   navigationOptions: () => ({
+  //     title: 'Map',
+  //     headerStyle: {
+  //       backgroundColor: 'gray',
+  //       height: 40,
+  //     },
+  //   })
+  // },
   Map: {
-    screen: Map,
-    navigationOptions: () => ({
-      title: 'Map',
-      // headerTitleAlign:"center",
-      headerStyle: {
-        backgroundColor: 'gray',
-        height: 40,
-      },
-    })
-  },
-
+      screen: Map,
+      navigationOptions: () => ({
+        headerShown:false
+      })
+    },
   Warning: {
     screen: Warning,
     navigationOptions: () => ({
@@ -46,7 +50,7 @@ const AppNavi = createStackNavigator({
   },
 },
   {
-    initialRouteName: 'Login'
+    initialRouteName: 'Map'
   });
 
 const AppContainer = createAppContainer(AppNavi);

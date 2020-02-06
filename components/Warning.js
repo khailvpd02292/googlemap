@@ -4,7 +4,6 @@ import {
     Alert,FlatList,
     Button, Modal, TouchableHighlight, TouchableOpacity
 } from 'react-native'
-// import { Button } from 'react-native-elements'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Dropdown } from 'react-native-material-dropdown';
 import Geolocation from '@react-native-community/geolocation';
@@ -81,7 +80,6 @@ export default class Warning extends Component {
         } else {
             SqliteHelper.addWarning(this.state.value, this.state.latitude, this.state.longitude),
                 this.props.navigation.navigate('Map')
-            // console.log('tc')
         }
     }
 
@@ -104,7 +102,7 @@ export default class Warning extends Component {
                                 <Dropdown
                                     label='Chọn cảnh báo phù hợp'
                                     data={this.state.FlatListTitle}
-                                    onChangeText={value => this.setState({ value })}
+                                    onChangeText={value => this.setState({value})}
                                     value={this.state.value}
                                 />
                             </View>

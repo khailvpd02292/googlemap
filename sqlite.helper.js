@@ -31,7 +31,6 @@ export default class SqliteHelper {
     return new Promise(function (resolve, reject) {
       db.transaction( tx => {
         var sql = "SELECT DISTINCT value FROM mapwarning ORDER BY value ASC";
-        // console.log('completed')
         tx.executeSql(sql, [], (tx, results) => {
           resolve(results);
         });
@@ -71,19 +70,6 @@ export default class SqliteHelper {
       })
     });
   };
-  // static async deleteTitle(a)  {
-  //   return await new Promise(function (resolve, reject){
-  //     db.transaction(tx => {
-        
-  //       var sql = "DELETE FROM warning WHERE value='"+a+"'";
-  //       console.log('success')
-  //       console.log('value: '+a)
-  //       tx.executeSql(sql, [value], (tx, results) => {
-  //         resolve(results);
-  //       });
-  //     })
-  //   });
-  // };
 
   static async query(sql) {
     return await new Promise(function (resolve, reject) {

@@ -1,11 +1,18 @@
 import React, { Component } from 'react';
-import { Text, View, TouchableOpacity, SafeAreaView, ScrollView, Image, FlatList } from 'react-native';
+import {
+    Text, View, TouchableOpacity, SafeAreaView, ScrollView, Image, FlatList,
+    ImageBackground
+} from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker, AnimatedRegion } from 'react-native-maps';
 import { Button } from 'react-native-elements'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import IconEntypo from 'react-native-vector-icons/Entypo';
 import Geolocation from '@react-native-community/geolocation';
-import SqliteHelper from '../sqlite.helper'
+import SqliteHelper from '../sqlite.helper';
+import {
+    DotIndicator,
+    BallIndicator,
+} from 'react-native-indicators';
 SqliteHelper.openDB();
 export default class Map extends Component {
     constructor(props) {
@@ -13,11 +20,33 @@ export default class Map extends Component {
         this.state = {
             latitude: 0,
             longitude: 0,
-            error :'',
+            error: '',
             FlatListItems: [],
             FlatListTitle: [],
+            loader: false,
         }
+        setInterval(() => {
+            this.checklocation()
+        }, 1000);
     }
+    componentWillUnmount() {
+        this.focusListener.remove();
+    }
+    UNSAFE_componentWillMount() {
+        this.setState({
+            loader: true
+        })
+        this.getTitle();
+        this.getWarning();
+    }
+    componentDidMount() {
+        const { navigation } = this.props;
+        this.focusListener = navigation.addListener('didFocus', () => {
+            this.getTitle();
+            this.getWarning();
+        });
+    }
+
     getWarning = async () => {
         let listTemp = [];
         let temp = await SqliteHelper.getWarning();
@@ -25,13 +54,15 @@ export default class Map extends Component {
             listTemp.push(temp.rows.item(i));
         };
         this.setState({
-            FlatListItems: listTemp
+            FlatListItems: listTemp,
         });
+        setTimeout(()=>{
+            this.setState({
+                loader: false,
+            });
+        },1000)
     }
-      componentWillUnmount() {
-        this.focusListener.remove();
-      }   
-      getTitle = async() => {
+    getTitle = async () => {
         let listTemps = [];
         let temp = await SqliteHelper.getTitle();
         for (let i = 0; i < temp.rows.length; i++) {
@@ -40,8 +71,22 @@ export default class Map extends Component {
         this.setState({
             FlatListTitle: listTemps
         });
-      }
-      location(){
+    }
+    checklocation() {
+        Geolocation.getCurrentPosition(position => {
+            if (this.state.latitude != position.coords.latitude) {
+                this.setState({
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    error: null
+                });
+            }
+        },
+            error => this.setState({ error: error.message }),
+            { enableHighAccuracy: true, timeout: 1000, maximumAge: 1000 }
+        );
+    }
+    location() {
         Geolocation.getCurrentPosition(position => {
             this.setState({
                 latitude: position.coords.latitude,
@@ -52,24 +97,25 @@ export default class Map extends Component {
             error => this.setState({ error: error.message }),
             { enableHighAccuracy: true, timeout: 1000, maximumAge: 1000 }
         );
-      }
-    componentDidMount() {
-        const { navigation } = this.props;
-        this.focusListener = navigation.addListener('didFocus', () => {
-          this.getTitle();  
-          this.getWarning();     
-        });
-        this.location();
     }
 
     render() {
-        const logo = {
-            uri: "https://www.paracelsoft.com/images/cmssite/img/PPE.png"
+        var imagebackgrouds = {
+            uri: "https://redpithemes.com/Documentation/assets/img/page_bg/page_bg_blur02.jpg"
         };
         const { FlatListItems } = this.state;
         const { latitude } = this.state;
         const { longitude } = this.state;
         const { FlatListTitle } = this.state;
+        if (this.state.loader) {
+            return (
+                <View>
+                    <ImageBackground source={imagebackgrouds} style={{ width: '100%', height: '100%' }} >
+                        <BallIndicator color='white' />
+                    </ImageBackground>
+                </View>
+            )
+        }
         return (
             <View style={{ flex: 1 }}>
                 <View style={{ flex: 3, backgroundColor: 'white' }}>
@@ -92,29 +138,28 @@ export default class Map extends Component {
                             // image={require('../image/video_camera.png')}
                             />
                         ))}
-                       
+
                     </MapView>
                 </View>
                 <View style={{ flex: 0.8, flexDirection: "row" }}>
-
                     <View style={{ flex: 1 }}>
-                      <Icon
-                                raised
-                                name='compass'
-                                type='font-awesome'
-                                color='gray'
-                                size={20}
-                                onPress={()=>{
-                                    this.location()
-                                }}
-                            />
+                        <Icon
+                            raised
+                            name='compass'
+                            type='font-awesome'
+                            color='gray'
+                            size={26}
+                            onPress={() => {
+                                this.location()
+                            }}
+                        />
                     </View>
                     <View style={{ flex: 1.5 }}>
                         <View style={{ alignItems: 'center', height: 28, flexDirection: 'row' }}>
                             <View style={{ flex: 16, alignItems: "center", justifyContent: 'center' }}>
                                 <Text style={{ color: 'blue', fontWeight: 'bold' }}>Biểu tượng cảnh báo</Text>
                             </View>
-                            
+
                             <View style={{ flex: 1, paddingTop: 5 }}>
                                 <TouchableOpacity
                                     onPress={() =>
@@ -147,7 +192,7 @@ export default class Map extends Component {
                                                 size={16} />
                                         </View>
                                         <View style={{ flex: 9.5, justifyContent: 'center' }}>
-                                            <Text style={{ alignItems: "center" }}>{item.value.substring(0, 1).toUpperCase() + item.value.substring(1)}</Text>
+                                            <Text style={{ alignItems: "center" }}>{item.value}</Text>
                                         </View>
 
                                     </View>
