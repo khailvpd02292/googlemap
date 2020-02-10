@@ -19,7 +19,7 @@ export default class Login extends Component {
         const resizeMode = 'center';
         return (
             <View>
-                <ImageBackground source={imagebackgrouds} style={{ width: '100%', height: '100%' }} >
+                <ImageBackground source={imagebackgrouds} style={{ width: '100%', height: '100%' }}>
                     <TouchableWithoutFeedback style={{ flex: 1, flexDirection: 'column' }} onPress={Keyboard.dismiss} >
                         <View style={{ flex: 1, flexDirection: 'column' }}>
                             <View style={{ flex: 1,justifyContent:"flex-end"}}>

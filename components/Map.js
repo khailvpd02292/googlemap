@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import {
     Text, View, TouchableOpacity, SafeAreaView, ScrollView, Image, FlatList,
-    ImageBackground
+    ImageBackground, Animated
 } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker, AnimatedRegion } from 'react-native-maps';
 import { Button } from 'react-native-elements'
@@ -18,8 +18,8 @@ export default class Map extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            latitude: 0,
-            longitude: 0,
+            latitude: 16.0282069,
+            longitude: 108.2090777,
             error: '',
             FlatListItems: [],
             FlatListTitle: [],
@@ -36,6 +36,8 @@ export default class Map extends Component {
         this.setState({
             loader: true
         })
+        SqliteHelper.createTableWarning();
+        SqliteHelper.createTableMapWarning();
         this.getTitle();
         this.getWarning();
     }
@@ -56,11 +58,11 @@ export default class Map extends Component {
         this.setState({
             FlatListItems: listTemp,
         });
-        setTimeout(()=>{
+        setTimeout(() => {
             this.setState({
                 loader: false,
             });
-        },1000)
+        }, 500)
     }
     getTitle = async () => {
         let listTemps = [];
@@ -100,7 +102,7 @@ export default class Map extends Component {
     }
 
     render() {
-        var imagebackgrouds = {
+        var imagebackgroud = {
             uri: "https://redpithemes.com/Documentation/assets/img/page_bg/page_bg_blur02.jpg"
         };
         const { FlatListItems } = this.state;
@@ -109,11 +111,9 @@ export default class Map extends Component {
         const { FlatListTitle } = this.state;
         if (this.state.loader) {
             return (
-                <View>
-                    <ImageBackground source={imagebackgrouds} style={{ width: '100%', height: '100%' }} >
-                        <BallIndicator color='white' />
-                    </ImageBackground>
-                </View>
+                <ImageBackground source={imagebackgroud} style={{ width: '100%', height: '100%' }} >
+                    <BallIndicator color='white' />
+                </ImageBackground>
             )
         }
         return (
@@ -136,11 +136,12 @@ export default class Map extends Component {
                                 pinColor='blue'
                                 title={marker.value}
                             // image={require('../image/video_camera.png')}
+                            image={marker.image}
                             />
                         ))}
-
                     </MapView>
                 </View>
+
                 <View style={{ flex: 0.8, flexDirection: "row" }}>
                     <View style={{ flex: 1 }}>
                         <Icon
@@ -156,11 +157,11 @@ export default class Map extends Component {
                     </View>
                     <View style={{ flex: 1.5 }}>
                         <View style={{ alignItems: 'center', height: 28, flexDirection: 'row' }}>
-                            <View style={{ flex: 16, alignItems: "center", justifyContent: 'center' }}>
+                            <View style={{ flex: 15, alignItems: "center", justifyContent: 'center'}}>
                                 <Text style={{ color: 'blue', fontWeight: 'bold' }}>Biểu tượng cảnh báo</Text>
                             </View>
 
-                            <View style={{ flex: 1, paddingTop: 5 }}>
+                            <View style={{ flex: 2, paddingTop: 5}}>
                                 <TouchableOpacity
                                     onPress={() =>
                                         this.props.navigation.navigate('Warning')
@@ -193,6 +194,7 @@ export default class Map extends Component {
                                         </View>
                                         <View style={{ flex: 9.5, justifyContent: 'center' }}>
                                             <Text style={{ alignItems: "center" }}>{item.value}</Text>
+                                            {/* <Text style={{ alignItems: "center" }}>{item.image}</Text> */}
                                         </View>
 
                                     </View>
