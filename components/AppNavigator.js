@@ -12,16 +12,7 @@ const AppNavi = createStackNavigator({
   //     headerShown: false
   //   }
   // },
-  // Map: {
-  //   screen: Map,
-  //   navigationOptions: () => ({
-  //     title: 'Map',
-  //     headerStyle: {
-  //       backgroundColor: 'gray',
-  //       height: 40,
-  //     },
-  //   })
-  // },
+ 
   Map: {
       screen: Map,
       navigationOptions: () => ({
@@ -41,7 +32,7 @@ const AppNavi = createStackNavigator({
   TitleWarning: {
     screen: TitleWarning,
     navigationOptions: () => ({
-      title: 'Thêm mới cảnh báo',
+      title: 'Thêm mới loại cảnh báo',
       headerStyle: {
         backgroundColor: 'gray',
         height: 40,

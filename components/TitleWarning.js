@@ -9,9 +9,15 @@ import {
 import validator from 'validator';
 import { Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import SqliteHelper from '../sqlite.helper'
+import SqliteHelper from '../hepper/sqlite.helper'
 import { FlatList } from 'react-native-gesture-handler';
+import ImagePicker from 'react-native-image-picker';
 SqliteHelper.openDB();
+const options = {
+    title: 'Chọn hình ảnh',
+    takePhotoButtonTitle: 'Máy ảnh',
+    chooseFromLibraryButtonTitle: 'Chọn từ thư viện ảnh',
+};
 export default class TitleWarning extends Component {
 
     constructor(props) {
@@ -20,14 +26,15 @@ export default class TitleWarning extends Component {
             value: '',
             FlatListTitle: [],
             title: '',
+            IconName: '',
         },
             this.create = this.create.bind(this);
-       
+
     }
 
     UNSAFE_componentWillMount = async () => {
         let listTemp = [];
-        let temp = await SqliteHelper.getTitleWarning();
+        let temp = await SqliteHelper.getTitleWaring();
         for (let i = 0; i < temp.rows.length; i++) {
             listTemp.push(temp.rows.item(i));
         };
@@ -35,20 +42,20 @@ export default class TitleWarning extends Component {
             FlatListTitle: listTemp
         });
     }
-    
+
     clearText = () => {
-        this._textInput.setNativeProps({text: ''});
-      }
+        this._textInput.setNativeProps({ text: '' });
+    }
     create() {
         let strims = this.state.value.trim();
         let cutspace = (strims.substring(0, 1).toUpperCase() + strims.substring(1).toLowerCase());
         for (let i = 0; i < this.state.FlatListTitle.length; i++) {
-            if (this.state.FlatListTitle[i].value == cutspace) {         
+            if (this.state.FlatListTitle[i].value == cutspace) {
                 return (Alert.alert(
                     'Thêm thất bại',
                     'Dữ liệu đã tồn tại',
                 ),
-                this.clearText() ) ;
+                    this.clearText());
             }
         }
         if (validator.isEmpty(cutspace) || cutspace == '') {
@@ -56,25 +63,53 @@ export default class TitleWarning extends Component {
                 'Thêm thất bại',
                 'Vui lòng không để trống trường cảnh báo',
             )
+            // console.log('IconName'+JSON.stringify(this.state.IconName))
         } else {
             Alert.alert(
                 'Thông báo',
                 'Bạn có chắc chắn muốn thêm dữ liệu',
                 [
-                  {
-                    text: 'Cancel',
-                    style: 'cancel',
-                  },
-                  {text: 'OK', onPress: () => {
-                    SqliteHelper.addTitleWarning(cutspace)
-                    this.props.navigation.navigate('Warning')
-                  }},
+                    {
+                        text: 'Cancel',
+                        style: 'cancel',
+                    },
+                    {
+                        text: 'OK', onPress: () => {
+                            SqliteHelper.addTitleWaring(cutspace, this.state.IconName)
+                            this.props.navigation.navigate('Warning')
+                        }
+                    },
                 ],
-                {cancelable: false},
-              );
+                { cancelable: false },
+            );
         }
     }
-    
+    myfuc = () => {
+        ImagePicker.showImagePicker(options, (response) => {
+            console.log('Response = ', response);
+
+            if (response.didCancel) {
+                console.log('User cancelled image picker');
+            } else if (response.error) {
+                console.log('ImagePicker Error: ', response.error);
+            } else if (response.customButton) {
+                console.log('User tapped custom button: ', response.customButton);
+            } else {
+                // const source = response;
+
+                // You can also display the image using data:
+                // console.log('anh')
+                const source = { uri: 'data:image/jpeg;base64,' + response.data };
+
+                this.setState({
+                    IconName: source,
+                });
+                console.log('********************************')
+
+            }
+        });
+    }
+
     render() {
         var imagebackgrouds = {
             uri: "https://redpithemes.com/Documentation/assets/img/page_bg/page_bg_blur02.jpg"
@@ -85,7 +120,7 @@ export default class TitleWarning extends Component {
                 <ImageBackground source={imagebackgrouds} style={{ width: '100%', height: '100%' }} >
                     <TouchableWithoutFeedback style={{ flex: 1, flexDirection: 'column' }} onPress={Keyboard.dismiss} >
                         <View style={{ flex: 1, flexDirection: 'column' }}>
-                            <View style={{ flex: 2, marginTop: 40 }}>
+                            <View style={{ flex: 1, marginTop: 40 }}>
                                 <TextInput style={styles.inputs}
                                     placeholder="Nhập cảnh báo của bạn"
                                     placeholderTextColor="gray"
@@ -98,9 +133,16 @@ export default class TitleWarning extends Component {
                                     <Button
                                         onPress={this.create}
                                         title="Thêm mới"></Button>
+                                    <Button title="Chọn ảnh"
+                                        onPress={() => this.myfuc()} />
                                 </View>
                             </View>
+                            <View style={{ flex: 2 }}>
+                                <Image source={this.state.IconName} style={{ width: '100%', height: '100%' }} />
+                            </View>
+
                         </View>
+
                     </TouchableWithoutFeedback>
 
                 </ImageBackground>
@@ -129,4 +171,3 @@ const styles = StyleSheet.create({
         marginBottom: 10
     }
 })
-

@@ -6,17 +6,15 @@ import {
 } from 'react-native'
 import MapView, { PROVIDER_GOOGLE, Marker, AnimatedRegion } from 'react-native-maps';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Dropdown } from 'react-native-material-dropdown';
 import Geolocation from '@react-native-community/geolocation';
-import SqliteHelper from '../sqlite.helper'
-import ImagePicker from 'react-native-image-picker';
+import SqliteHelper from '../hepper/sqlite.helper'
+import DeviceInfo from 'react-native-device-info';
 SqliteHelper.openDB();
 console.disableYellowBox = true;
-const options = {
-    title: 'Chọn hình ảnh',
-    takePhotoButtonTitle: 'Máy ảnh',
-    chooseFromLibraryButtonTitle: 'Chọn từ thư viện ảnh',
-};
+// let deviceIds = DeviceInfo.getDeviceId();
+let uniqueId = DeviceInfo.getUniqueId();
 export default class Warning extends Component {
 
     constructor(props) {
@@ -28,14 +26,24 @@ export default class Warning extends Component {
             FlatListTitle: [],
             FlatListItems: [],
             title: '',
-            avatarSource: null
+            time: '',
+            region: {
+                latitude: 16.0282069,
+                longitude: 108.2090777,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+            },
+            latitudenew: 0,
+            longitudenew: 0,
+            deviceId: null,
         };
         this.create = this.create.bind(this)
         this.onMapPress = this.onMapPress.bind(this)
     }
-    getWarning = async () => {
+
+    getMapWarning = async () => {
         let listTemp = [];
-        let temp = await SqliteHelper.getWarning();
+        let temp = await SqliteHelper.getMapWarning();
         for (let i = 0; i < temp.rows.length; i++) {
             listTemp.push(temp.rows.item(i));
         };
@@ -43,9 +51,9 @@ export default class Warning extends Component {
             FlatListItems: listTemp
         });
     }
-    getTitleWarning = async () => {
+    getTitleWaring = async () => {
         let listTemp = [];
-        let temp = await SqliteHelper.getTitleWarning();
+        let temp = await SqliteHelper.getTitleWaring();
         for (let i = 0; i < temp.rows.length; i++) {
             listTemp.push(temp.rows.item(i));
         };
@@ -54,76 +62,94 @@ export default class Warning extends Component {
         });
     }
     UNSAFE_componentWillMount() {
-        this.getTitleWarning(),
-            this.getWarning()
+        this.location()
+        this.getTitleWaring()
+        this.getMapWarning()
+        this.getDate()
+        this.setState({
+            deviceId: uniqueId
+        })
     }
     componentWillUnmount() {
         this.focusListener.remove();
     }
+    getDate() {
+        var date = new Date().getDate(); //Current Date
+        var month = new Date().getMonth() + 1; //Current Month
+        var year = new Date().getFullYear(); //Current Year
+        var hours = new Date().getHours(); //Current Hours
+        var min = new Date().getMinutes(); //Current Minutes
+        var sec = new Date().getSeconds(); //Current Seconds
+        this.setState({
+            //Setting the value of the date time
+            time:
+                date + '/' + month + '/' + year + ' ' + hours + ':' + min + ':' + sec,
+        });
+    }
     componentDidMount() {
+        // console.log("deviceIds"+ deviceIds)
+        const { navigation } = this.props;
+        this.focusListener = navigation.addListener('didFocus', () => {
+            this.getTitleWaring();
+            this.getMapWarning();
+        });
+    }
+    location() {
         Geolocation.getCurrentPosition(position => {
             this.setState({
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
-                error: null
+                error: null,
+                region: {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                }
             });
         },
             error => this.setState({ error: error.message }),
             { enableHighAccuracy: true, timeout: 1000, maximumAge: 1000 }
         );
-        const { navigation } = this.props;
-        this.focusListener = navigation.addListener('didFocus', () => {
-            this.getTitleWarning();
-            this.getWarning();
-        });
     }
     onMapPress(e) {
         this.setState({
-            latitude: e.nativeEvent.coordinate.latitude,
-            longitude: e.nativeEvent.coordinate.longitude,
-        });
-    }
-    myfuc = () => {
-        ImagePicker.showImagePicker(options, (response) => {
-            // console.log('Response = ', response);
-
-            if (response.didCancel) {
-                console.log('User cancelled image picker');
-            } else if (response.error) {
-                console.log('ImagePicker Error: ', response.error);
-            } else if (response.customButton) {
-                console.log('User tapped custom button: ', response.customButton);
-            } else {
-                const source = { uri: response.uri };
-
-                // You can also display the image using data:
-                // console.log('anh')
-                // const source = { uri: 'data:image/jpeg;base64,' + response.data };
-
-                this.setState({
-                    avatarSource: source,
-                });
+            latitudenew: e.nativeEvent.coordinate.latitude,
+            longitudenew: e.nativeEvent.coordinate.longitude,
+            region: {
+                latitude: e.nativeEvent.coordinate.latitude,
+                longitude: e.nativeEvent.coordinate.longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
             }
         });
     }
+
 
     create() {
         const { FlatListItems } = this.state;
         const { latitude } = this.state;
         const { value } = this.state;
 
-        for (let i = 0; i < FlatListItems.length; i++) {
-            if (FlatListItems[i].value == value && latitude == FlatListItems[i].latitude) {
-                return Alert.alert(
-                    'Thêm thất bại',
-                    'Vị trí đã được đánh dấu',
-                );
-            }
-        }
+        // for (let i = 0; i < FlatListItems.length; i++) {
+        //     if (FlatListItems[i].value == value && latitude == FlatListItems[i].latitude) {
+        //         return Alert.alert(
+        //             'Thêm thất bại',
+        //             'Vị trí đã được đánh dấu',
+        //         );
+        //     }
+        // }
         if (value == null || value == '') {
+            this.getDate()
             Alert.alert(
                 'Thêm thất bại',
                 'Vui lòng chọn cảnh báo',
+            )
+            console.log('time' + this.state.time);
+        } else if (this.state.latitudenew == 0) {
+            Alert.alert(
+                'Thêm thất bại',
+                'Vui lòng chọn vị trí',
             )
         } else {
             Alert.alert(
@@ -136,10 +162,9 @@ export default class Warning extends Component {
                     },
                     {
                         text: 'OK', onPress: () => {
-                            console.log('*********************************************************')
-                            console.log('add :' + JSON.stringify(this.state.avatarSource))
-                            SqliteHelper.addWarning(this.state.value, this.state.latitude, this.state.longitude, this.state.avatarSource),
-                                this.props.navigation.navigate('Map')
+                            this.getDate(),
+                                SqliteHelper.addMapWarning(this.state.time, this.state.deviceId, this.state.value, this.state.latitudenew, this.state.longitudenew)
+                            this.props.navigation.navigate('Map')
                         }
                     },
                 ],
@@ -158,7 +183,7 @@ export default class Warning extends Component {
         const { latitude } = this.state;
         const { longitude } = this.state;
         return (
-            <ImageBackground source={{uri:imagebackgrouds}} style={{ width: '100%', height: '100%' }} >
+            <ImageBackground source={{ uri: imagebackgrouds }} style={{ width: '100%', height: '100%' }} >
                 <View style={{
                     flex: 1, width: '100%',
                     marginTop: 0,
@@ -196,34 +221,55 @@ export default class Warning extends Component {
                         <View style={{ marginTop: 20, width: 100, marginLeft: 240 }}>
                             <Button title="Lưu"
                                 onPress={this.create} />
-                            <Button title="Chọn ảnh"
-                                onPress={() => this.myfuc()} />
+
                         </View>
-                        <Image source={this.state.avatarSource} style={{ width: '100%', height: 20 }} />
                     </View>
                     <View style={{ flex: 3, marginTop: 3, width: '98%', marginRight: 'auto', marginLeft: 'auto' }}>
                         <Text style={{ width: '100%', paddingLeft: 50, fontSize: 20, color: 'red', marginBottom: 5 }}>Chọn vị trí bạn muốn cảnh báo </Text>
-
+                        <MaterialIcons style={{ marginTop: -26, marginBottom: 4 }}
+                            raised
+                            name='my-location'
+                            // type='font-awesome'
+                            color='back'
+                            size={26}
+                            onPress={() => {
+                                this.location()
+                            }}
+                        />
                         <MapView
                             style={{ flex: 1 }}
-                            region={{
-                                latitude: latitude,
-                                longitude: longitude,
-                                latitudeDelta: 0.01,
-                                longitudeDelta: 0.01,
-                            }}
+                            region={this.state.region}
                             onPress={this.onMapPress}
                         >
+
                             <Marker coordinate={this.state} title={"Vị trí của bạn"} />
 
+                            <Marker coordinate={{
+                                latitude: this.state.latitudenew,
+                                longitude: this.state.longitudenew
+                            }}
+                                pinColor={'green'}
+                            />
                             {FlatListItems.length > 0 && FlatListItems.map(marker => (
                                 <Marker key={marker.id}
                                     coordinate={marker}
                                     pinColor='blue'
                                     title={marker.value}
+                                    image={marker.image}
                                 />
                             ))}
-
+                            {/* <View>
+                            <MaterialIcons
+                            raised
+                            name='my-location'
+                            // type='font-awesome'
+                            color='back'
+                            size={26}
+                            onPress={() => {
+                                this.location()
+                            }}
+                        />
+                            </View> */}
                         </MapView>
                     </View>
 
@@ -232,3 +278,5 @@ export default class Warning extends Component {
         )
     }
 }
+
+

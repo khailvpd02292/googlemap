@@ -1,14 +1,16 @@
 import React, { Component } from 'react';
 import {
     Text, View, TouchableOpacity, SafeAreaView, ScrollView, Image, FlatList,
-    ImageBackground, Animated
+    ImageBackground, Animated, TouchableHighlight, Modal
 } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker, AnimatedRegion } from 'react-native-maps';
 import { Button } from 'react-native-elements'
 import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import IconEntypo from 'react-native-vector-icons/Entypo';
 import Geolocation from '@react-native-community/geolocation';
-import SqliteHelper from '../sqlite.helper';
+import SqliteHelper from '../hepper/sqlite.helper';
+import { Dropdown } from 'react-native-material-dropdown';
 import {
     DotIndicator,
     BallIndicator,
@@ -20,53 +22,74 @@ export default class Map extends Component {
         this.state = {
             latitude: 16.0282069,
             longitude: 108.2090777,
+            latitudenew: 0,
+            longitudenew: 0,
             error: '',
+            title: '',
             FlatListItems: [],
             FlatListTitle: [],
             loader: false,
+            modalVisible: false,
+            region: {
+                latitude: 16.0282069,
+                longitude: 108.2090777,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+            }
         }
         setInterval(() => {
             this.checklocation()
         }, 1000);
+        // this.onMapPress = this.onMapPress.bind(this)
     }
+
+    setModalVisible(visible) {
+        this.setState({ modalVisible: visible });
+    }
+
     componentWillUnmount() {
         this.focusListener.remove();
     }
     UNSAFE_componentWillMount() {
-        this.setState({
-            loader: true
-        })
-        SqliteHelper.createTableWarning();
+        // this.setState({
+        //     loader: true
+        // })
+        SqliteHelper.createTableTitleWaring();
         SqliteHelper.createTableMapWarning();
-        this.getTitle();
-        this.getWarning();
+        this.getTitleWaring();
+        this.getMapWarning();
+        this.location();
     }
     componentDidMount() {
         const { navigation } = this.props;
         this.focusListener = navigation.addListener('didFocus', () => {
-            this.getTitle();
-            this.getWarning();
+            this.getTitleWaring();
+            this.getMapWarning();
         });
     }
 
-    getWarning = async () => {
+    getMapWarning = async () => {
         let listTemp = [];
-        let temp = await SqliteHelper.getWarning();
+        let temp = await SqliteHelper.getMapWarning();
         for (let i = 0; i < temp.rows.length; i++) {
             listTemp.push(temp.rows.item(i));
         };
         this.setState({
             FlatListItems: listTemp,
         });
-        setTimeout(() => {
-            this.setState({
-                loader: false,
-            });
-        }, 500)
+        this.setState({
+            loader: false,
+        });
+        // setTimeout(() => {
+        //     this.setState({
+        //         loader: false,
+        //     });
+        // }, 500)
     }
-    getTitle = async () => {
+
+    getTitleWaring = async () => {
         let listTemps = [];
-        let temp = await SqliteHelper.getTitle();
+        let temp = await SqliteHelper.getTitleWaring();
         for (let i = 0; i < temp.rows.length; i++) {
             listTemps.push(temp.rows.item(i));
         };
@@ -93,13 +116,20 @@ export default class Map extends Component {
             this.setState({
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
-                error: null
+                error: null,
+                region: {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                }
             });
         },
             error => this.setState({ error: error.message }),
             { enableHighAccuracy: true, timeout: 1000, maximumAge: 1000 }
         );
     }
+
 
     render() {
         var imagebackgroud = {
@@ -121,53 +151,59 @@ export default class Map extends Component {
                 <View style={{ flex: 3, backgroundColor: 'white' }}>
                     <MapView
                         style={{ flex: 1 }}
-                        region={{
-                            latitude: latitude,
-                            longitude: longitude,
-                            latitudeDelta: 0.01,
-                            longitudeDelta: 0.01,
-                        }}
+                        region={this.state.region}
+                        onPress={this.onMapPress}
                     >
-                        <Marker coordinate={this.state} title={"Vị trí của bạn"} >
-                        </Marker>
+                        <Marker coordinate={this.state} title={"Vị trí của bạn"} />
+
+                        <Marker coordinate={{
+                            latitude: this.state.latitudenew,
+                            longitude: this.state.longitudenew
+                        }}
+                            pinColor={'blue'}
+                        />
                         {FlatListItems.length > 0 && FlatListItems.map(marker => (
                             <Marker key={marker.id}
                                 coordinate={marker}
                                 pinColor='blue'
                                 title={marker.value}
-                            // image={require('../image/video_camera.png')}
-                            image={marker.image}
+                                // image={require('../image/video_camera.png')}
+                                image={marker.image}
                             />
                         ))}
                     </MapView>
                 </View>
 
                 <View style={{ flex: 0.8, flexDirection: "row" }}>
-                    <View style={{ flex: 1 }}>
-                        <Icon
+                    <View style={{ width: '8%', height: 30 }}>
+                        <MaterialIcons
                             raised
-                            name='compass'
+                            name='my-location'
                             type='font-awesome'
-                            color='gray'
+                            color='black'
                             size={26}
                             onPress={() => {
                                 this.location()
                             }}
                         />
                     </View>
-                    <View style={{ flex: 1.5 }}>
+                    <View style={{ width: '92%' }}>
                         <View style={{ alignItems: 'center', height: 28, flexDirection: 'row' }}>
-                            <View style={{ flex: 15, alignItems: "center", justifyContent: 'center'}}>
+                            <View style={{ flex: 15, alignItems: "center", justifyContent: 'center' }}>
                                 <Text style={{ color: 'blue', fontWeight: 'bold' }}>Biểu tượng cảnh báo</Text>
                             </View>
 
-                            <View style={{ flex: 2, paddingTop: 5}}>
+                            <View style={{ flex: 2, paddingTop: 5 }}>
                                 <TouchableOpacity
-                                    onPress={() =>
-                                        this.props.navigation.navigate('Warning')
-                                    }
+                                    // onPress={() =>
+                                    //     this.props.navigation.navigate('Warning')
+                                    // }
+                                    onPress={() => {
+                                        this.setModalVisible(true);
+                                    }}
+
                                     style={{ height: 28, width: 28 }}
-                                >
+                                    >
                                     <Icon
                                         raised
                                         name='plus'
@@ -176,6 +212,14 @@ export default class Map extends Component {
                                         size={20}
                                     />
                                 </TouchableOpacity>
+
+
+                                {/* <TouchableHighlight
+                        onPress={() => {
+                            this.setModalVisible(true);
+                        }}>
+                        <Text>Show Modal</Text>
+                    </TouchableHighlight> */}
                             </View>
                         </View>
                         <FlatList
@@ -183,7 +227,7 @@ export default class Map extends Component {
                             keyExtractor={(item, index) => index.toString()}
                             renderItem={({ item }) => (
                                 <ScrollView>
-                                    <View style={{ height: 21, flexDirection: 'row' }}>
+                                    <View style={{ height: 22, flexDirection: 'row' }}>
                                         <View style={{ flex: 1.5, justifyContent: 'center', alignItems: 'center' }}>
                                             <Icon
                                                 raised
@@ -201,9 +245,29 @@ export default class Map extends Component {
                                 </ScrollView>
                             )}
                         />
+                        <Modal
+                            animationType="slide"
+                            transparent={false}
+                            visible={this.state.modalVisible}
+                            onRequestClose={() => {
+                                Alert.alert('Modal has been closed.');
+                            }}>
+                            <View style={{ marginTop: 22 }}>
+                                <View>
+                                    <Text>Hello World!</Text>
+                                    <TouchableHighlight
+                                        onPress={() => {
+                                            this.setModalVisible(!this.state.modalVisible);
+                                        }}>
+                                        <Text>Hide Modal</Text>
+                                    </TouchableHighlight>
+                                </View>
+                            </View>
+                        </Modal>
                     </View>
 
                 </View>
+
             </View>
         )
     }
