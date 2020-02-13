@@ -43,7 +43,7 @@ export default class Warning extends Component {
 
     getMapWarning = async () => {
         let listTemp = [];
-        let temp = await SqliteHelper.getMapWarning();
+        let temp = await SqliteHelper.getImage();
         for (let i = 0; i < temp.rows.length; i++) {
             listTemp.push(temp.rows.item(i));
         };
@@ -74,20 +74,18 @@ export default class Warning extends Component {
         this.focusListener.remove();
     }
     getDate() {
-        var date = new Date().getDate(); //Current Date
-        var month = new Date().getMonth() + 1; //Current Month
-        var year = new Date().getFullYear(); //Current Year
-        var hours = new Date().getHours(); //Current Hours
-        var min = new Date().getMinutes(); //Current Minutes
-        var sec = new Date().getSeconds(); //Current Seconds
+        var date = new Date().getDate(); 
+        var month = new Date().getMonth() + 1;
+        var year = new Date().getFullYear(); 
+        var hours = new Date().getHours(); 
+        var min = new Date().getMinutes(); 
+        var sec = new Date().getSeconds(); 
         this.setState({
-            //Setting the value of the date time
             time:
                 date + '/' + month + '/' + year + ' ' + hours + ':' + min + ':' + sec,
         });
     }
     componentDidMount() {
-        // console.log("deviceIds"+ deviceIds)
         const { navigation } = this.props;
         this.focusListener = navigation.addListener('didFocus', () => {
             this.getTitleWaring();
@@ -130,27 +128,20 @@ export default class Warning extends Component {
         const { FlatListItems } = this.state;
         const { latitude } = this.state;
         const { value } = this.state;
-
-        // for (let i = 0; i < FlatListItems.length; i++) {
-        //     if (FlatListItems[i].value == value && latitude == FlatListItems[i].latitude) {
-        //         return Alert.alert(
-        //             'Thêm thất bại',
-        //             'Vị trí đã được đánh dấu',
-        //         );
-        //     }
-        // }
         if (value == null || value == '') {
             this.getDate()
             Alert.alert(
                 'Thêm thất bại',
                 'Vui lòng chọn cảnh báo',
             )
-            console.log('time' + this.state.time);
+            // console.log('time' + this.state.time);
+
         } else if (this.state.latitudenew == 0) {
             Alert.alert(
                 'Thêm thất bại',
                 'Vui lòng chọn vị trí',
             )
+
         } else {
             Alert.alert(
                 'Thông báo',
@@ -164,6 +155,9 @@ export default class Warning extends Component {
                         text: 'OK', onPress: () => {
                             this.getDate(),
                                 SqliteHelper.addMapWarning(this.state.time, this.state.deviceId, this.state.value, this.state.latitudenew, this.state.longitudenew)
+                            this.setState({
+                                message: false
+                            })
                             this.props.navigation.navigate('Map')
                         }
                     },
@@ -223,9 +217,11 @@ export default class Warning extends Component {
                                 onPress={this.create} />
 
                         </View>
+
                     </View>
                     <View style={{ flex: 3, marginTop: 3, width: '98%', marginRight: 'auto', marginLeft: 'auto' }}>
                         <Text style={{ width: '100%', paddingLeft: 50, fontSize: 20, color: 'red', marginBottom: 5 }}>Chọn vị trí bạn muốn cảnh báo </Text>
+
                         <MaterialIcons style={{ marginTop: -26, marginBottom: 4 }}
                             raised
                             name='my-location'
@@ -242,21 +238,33 @@ export default class Warning extends Component {
                             onPress={this.onMapPress}
                         >
 
-                            <Marker coordinate={this.state} title={"Vị trí của bạn"} />
+                            <Marker coordinate={this.state} title={"Vị trí của bạn"} >
+                                <Icon
+                                    raised
+                                    name='circle'
+                                    type='font-awesome'
+                                    color='#1D50CE'
+                                    size={16}
+                                    onPress={() => {
+                                        this.location()
+                                    }}
+                                />
+                            </Marker>
 
                             <Marker coordinate={{
                                 latitude: this.state.latitudenew,
                                 longitude: this.state.longitudenew
                             }}
-                                pinColor={'green'}
+                            
                             />
                             {FlatListItems.length > 0 && FlatListItems.map(marker => (
                                 <Marker key={marker.id}
                                     coordinate={marker}
                                     pinColor='blue'
                                     title={marker.value}
-                                    image={marker.image}
-                                />
+                                >
+                                    <Image source={{ uri: marker.IconName }} style={{ width: 20, height: 20 }}  />
+                                </Marker>
                             ))}
                             {/* <View>
                             <MaterialIcons

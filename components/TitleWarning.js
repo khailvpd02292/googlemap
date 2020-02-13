@@ -63,7 +63,12 @@ export default class TitleWarning extends Component {
                 'Thêm thất bại',
                 'Vui lòng không để trống trường cảnh báo',
             )
-            // console.log('IconName'+JSON.stringify(this.state.IconName))
+        
+        }else if(this.state.IconName ==''){
+            Alert.alert(
+                'Thêm thất bại',
+                'Vui lòng chọn hình ảnh phù hợp',
+            )
         } else {
             Alert.alert(
                 'Thông báo',
@@ -74,6 +79,7 @@ export default class TitleWarning extends Component {
                         style: 'cancel',
                     },
                     {
+                       
                         text: 'OK', onPress: () => {
                             SqliteHelper.addTitleWaring(cutspace, this.state.IconName)
                             this.props.navigation.navigate('Warning')
@@ -86,26 +92,19 @@ export default class TitleWarning extends Component {
     }
     myfuc = () => {
         ImagePicker.showImagePicker(options, (response) => {
-            console.log('Response = ', response);
-
             if (response.didCancel) {
                 console.log('User cancelled image picker');
             } else if (response.error) {
-                console.log('ImagePicker Error: ', response.error);
+                alert('error'+response.error)
             } else if (response.customButton) {
                 console.log('User tapped custom button: ', response.customButton);
             } else {
-                // const source = response;
-
-                // You can also display the image using data:
-                // console.log('anh')
-                const source = { uri: 'data:image/jpeg;base64,' + response.data };
+                const source = response.uri;
+                // const source =  'data:image/jpeg;base64,' + response.data ;
 
                 this.setState({
                     IconName: source,
                 });
-                console.log('********************************')
-
             }
         });
     }
@@ -137,8 +136,8 @@ export default class TitleWarning extends Component {
                                         onPress={() => this.myfuc()} />
                                 </View>
                             </View>
-                            <View style={{ flex: 2 }}>
-                                <Image source={this.state.IconName} style={{ width: '100%', height: '100%' }} />
+                            <View style={{ flex: 2.4,margin:'auto'}}>
+                                <Image source={{uri : this.state.IconName}} style={{ width: '80%', height: '100%',marginLeft:40}} />
                             </View>
 
                         </View>
