@@ -22,7 +22,7 @@ const AppNavi = createStackNavigator({
   Warning: {
     screen: Warning,
     navigationOptions: () => ({
-      title: 'Thêm cảnh báo',
+      title: '',
       headerStyle: {
         backgroundColor: 'gray',
         height: 40,

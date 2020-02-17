@@ -12,7 +12,7 @@ export default class SqliteHelper {
   }
 
   static openDB() {
-     db = SQLite.openDatabase({ name: "db_mapwarning5", location: 1 }, this.okCallback, this.errorCallback);
+     db = SQLite.openDatabase({ name: "db_mapwarning6", location: 1 }, this.okCallback, this.errorCallback);
     return db;
   }
 
@@ -47,26 +47,34 @@ export default class SqliteHelper {
     });
   };
 
-  static getImage = () => {
+  static getImage = (key) => {
+    key = key || '';
     return new Promise(function (resolve, reject) {
       db.transaction(tx => {
         var sql = "SELECT MapWarning.value,MapWarning.latitude,MapWarning.longitude,TitleWaring.IconName  FROM MapWarning INNER JOIN TitleWaring ON MapWarning.value=TitleWaring.value";
+        var sqlite = "SELECT MapWarning.value,MapWarning.latitude,MapWarning.longitude,TitleWaring.IconName  FROM MapWarning INNER JOIN TitleWaring ON MapWarning.value=TitleWaring.value where value ='"+key+"'";
+       if(key == ''){
         tx.executeSql(sql, [], (tx, results) => {
           resolve(results);
         });
-      });
-    });
-  };
-  static getMapWarningUnique = () => {
-    return new Promise(function (resolve, reject) {
-      db.transaction(tx => {
-        var sql = "SELECT MapWarning.value,MapWarning.latitude,MapWarning.longitude,TitleWaring.IconName  FROM MapWarning INNER JOIN TitleWaring ON MapWarning.value=TitleWaring.value group by MapWarning.value";
-        tx.executeSql(sql, [], (tx, results) => {
+      }else{
+        tx.executeSql(sqlite, [], (tx, results) => {
           resolve(results);
         });
+      }
       });
     });
   };
+  // static getMapWarningUnique = () => {
+  //   return new Promise(function (resolve, reject) {
+  //     db.transaction(tx => {
+  //       var sql = "SELECT MapWarning.value,MapWarning.latitude,MapWarning.longitude,TitleWaring.IconName  FROM MapWarning INNER JOIN TitleWaring ON MapWarning.value=TitleWaring.value group by MapWarning.value";
+  //       tx.executeSql(sql, [], (tx, results) => {
+  //         resolve(results);
+  //       });
+  //     });
+  //   });
+  // };
 
 
   static getMapWarning = () => {

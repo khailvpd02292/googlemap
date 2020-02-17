@@ -63,8 +63,8 @@ export default class TitleWarning extends Component {
                 'Thêm thất bại',
                 'Vui lòng không để trống trường cảnh báo',
             )
-        
-        }else if(this.state.IconName ==''){
+
+        } else if (this.state.IconName == '') {
             Alert.alert(
                 'Thêm thất bại',
                 'Vui lòng chọn hình ảnh phù hợp',
@@ -79,10 +79,10 @@ export default class TitleWarning extends Component {
                         style: 'cancel',
                     },
                     {
-                       
+
                         text: 'OK', onPress: () => {
                             SqliteHelper.addTitleWaring(cutspace, this.state.IconName)
-                            this.props.navigation.navigate('Warning')
+                            this.props.navigation.navigate('Map')
                         }
                     },
                 ],
@@ -95,7 +95,7 @@ export default class TitleWarning extends Component {
             if (response.didCancel) {
                 console.log('User cancelled image picker');
             } else if (response.error) {
-                alert('error'+response.error)
+                alert('error' + response.error)
             } else if (response.customButton) {
                 console.log('User tapped custom button: ', response.customButton);
             } else {
@@ -121,7 +121,7 @@ export default class TitleWarning extends Component {
                         <View style={{ flex: 1, flexDirection: 'column' }}>
                             <View style={{ flex: 1, marginTop: 40 }}>
                                 <TextInput style={styles.inputs}
-                                    placeholder="Nhập cảnh báo của bạn"
+                                    placeholder="Nhập tên cảnh báo"
                                     placeholderTextColor="gray"
                                     returnKeyType='next'
                                     onChangeText={value => this.setState({ value })}
@@ -131,13 +131,17 @@ export default class TitleWarning extends Component {
                                 <View style={styles.buttons}>
                                     <Button
                                         onPress={this.create}
-                                        title="Thêm mới"></Button>
+                                        title="Thêm mới"/> 
+                                </View>
+                                <View style={styles.buttons}>
                                     <Button title="Chọn ảnh"
                                         onPress={() => this.myfuc()} />
                                 </View>
                             </View>
-                            <View style={{ flex: 2.4,margin:'auto'}}>
-                                <Image source={{uri : this.state.IconName}} style={{ width: '80%', height: '100%',marginLeft:40}} />
+                            <View style={{ flex: 2.1, margin: 'auto',alignItems:"center"}}>
+                                <View style={{width:100,height:100,marginTop:80}}>
+                                    <Image source={{ uri: this.state.IconName }} style={{ width: '80%', height: '100%'}} />
+                                </View>
                             </View>
 
                         </View>
