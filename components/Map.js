@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import {
     Text, View, TouchableOpacity, SafeAreaView, ScrollView, Image, FlatList,
-    ImageBackground, Animated, Alert,CheckBox
+    ImageBackground, Animated, Alert, Dimensions, StyleSheet
 } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker, AnimatedRegion } from 'react-native-maps';
 import { Button } from 'react-native-elements'
@@ -13,18 +13,24 @@ import Geolocation from '@react-native-community/geolocation';
 import SqliteHelper from '../hepper/sqlite.helper';
 import Modal from "react-native-modal";
 import { Dropdown } from 'react-native-material-dropdown';
+import { CheckBox } from 'react-native-elements'
 import BottomDrawer from 'rn-bottom-drawer';
 let uniqueId = DeviceInfo.getUniqueId();
 import DeviceInfo from 'react-native-device-info';
 import AntDesign from 'react-native-vector-icons/AntDesign'
+import HeaderBottomDrawer from './HeaderBottomDrawer'
+import MapViews from './MapViews'
+import ContentBottomDrawer from './ContentBottomDrawer'
+// import ModalScreen from './ModalScreen'
 import {
     DotIndicator,
     BallIndicator,
 } from 'react-native-indicators';
+import Loading from './Loading';
 SqliteHelper.openDB();
 const TAB_BAR_HEIGHT = 6;
 console.disableYellowBox = true;
-var tempCheckValues = [];
+
 export default class Map extends Component {
     constructor(props) {
         super(props);
@@ -36,7 +42,6 @@ export default class Map extends Component {
             longitude: 108.2090777,
             latitudenew: 0,
             longitudenew: 0,
-            error: '',
             title: '',
             FlatListTitle: [],
             loader: false,
@@ -52,25 +57,16 @@ export default class Map extends Component {
         }
         this.create = this.create.bind(this)
         this.onMapPress = this.onMapPress.bind(this)
+        this.location = this.location.bind(this)
         setInterval(() => {
-            this.checklocation()
-        }, 1000);
+            this.checklocation();
+        }, 500);
     }
     toggleModal = () => {
-        this.setState({ isModalVisible: !this.state.isModalVisible });
+        this.setState({
+            isModalVisible: !this.state.isModalVisible
+        });
     };
-    checkBoxChanged(id, value) {
-        this.setState({
-            checkBoxChecked: tempCheckValues
-        })
-        var tempCheckBoxChecked = this.state.checkBoxChecked;
-        tempCheckBoxChecked[id] = !value;
-        this.setState({
-            checkBoxChecked: tempCheckBoxChecked
-        })
-        console.log(value + id)
-    }
-
     componentWillUnmount() {
         this.focusListener.remove();
     }
@@ -93,7 +89,6 @@ export default class Map extends Component {
             this.getTitleWaring();
             this.getImage()
         });
-
     }
     getDate() {
         var date = new Date().getDate();
@@ -116,21 +111,24 @@ export default class Map extends Component {
         this.setState({
             FlatListTitle: listTemps
         });
-
     }
+
     getImage = async () => {
+        const { checkBoxChecked } = this.state;
+        var keyword = checkBoxChecked;
         let listTempp = [];
-        let tempp = await SqliteHelper.getImage();
+        let tempp = await SqliteHelper.getImage(keyword);
         for (let i = 0; i < tempp.rows.length; i++) {
             listTempp.push(tempp.rows.item(i));
         };
         this.setState({
             Images: listTempp,
-            loader: false,
+            loader: false
         });
     }
-    checklocation() {
 
+
+    checklocation() {
         Geolocation.getCurrentPosition(position => {
             if (this.state.latitude != position.coords.latitude) {
                 this.setState({
@@ -175,17 +173,16 @@ export default class Map extends Component {
         });
     }
     create() {
-        const { FlatListItems } = this.state;
-        const { latitude } = this.state;
-        const { value } = this.state;
-        if (value == null || value == '') {
+        const item = this.state;
+        console.log(item.value+'item.value')
+        if (item.value == null || item.value == '') {
             this.getDate()
             Alert.alert(
                 'Thêm thất bại',
                 'Vui lòng chọn cảnh báo',
             )
 
-        } else if (this.state.latitudenew == 0) {
+        } else if (item.latitudenew == 0) {
             Alert.alert(
                 'Thêm thất bại',
                 'Vui lòng chọn vị trí cần cảnh báo trên bản đồ',
@@ -208,7 +205,7 @@ export default class Map extends Component {
                                 latitudenew: 0,
                                 longitudenew: 0,
                             })
-                            this.UNSAFE_componentWillMount();
+                            this.getImage();
                         }
                     },
                 ],
@@ -217,36 +214,112 @@ export default class Map extends Component {
 
         }
     }
-    renderHeader = () => (
-        <View style={{ borderTopLeftRadius: 16, borderTopRightRadius: 16, height: 34, alignItems: "center", justifyContent: "center" }}>
-            <Feather
-                raised
-                name='minus'
-                color='black'
-                size={26}
-                onPress={() => {
-                    this.location()
-                }}
-            />
+    onclickcb = value => {
+        const { checkBoxChecked } = this.state;
+        const isInclude = checkBoxChecked.includes(value);
+        if (!isInclude) {
+            this.setState(state => ({
+                checkBoxChecked: [...state.checkBoxChecked, ...[value]],
+            }));
+        } else {
+            this.setState(state => ({
+                checkBoxChecked: state.checkBoxChecked.filter(item => item !== value),
+            }));
+        }
 
-        </View>
-    )
+    }
+    closeModal() {
+        this.getImage();
+        this.toggleModal();
+    }
+    render() {
+        var imagebackgroud = {
+            uri: "https://redpithemes.com/Documentation/assets/img/page_bg/page_bg_blur02.jpg"
+        };
+        const item = this.state;
+        if (item.loader) {
+            return (
+                <Loading />
+            )
+        }
+        return (
+            <View style={{ flex: 1 }}>
+                <View style={{ flex: 3, backgroundColor: 'white' }}>
+                    <MapViews
+                        Images={item.Images}
+                        region={this.state.region}
+                        latitude={item.latitude}
+                        longitude={item.longitude}
+                        latitudenew={item.latitudenew}
+                        longitudenew={item.longitudenew}
+                        onMapPress={this.onMapPress}
+                    />
+                </View>
+                <BottomDrawer
+                    containerHeight={280}
+                    offset={TAB_BAR_HEIGHT}
+                    startUp={false}
+                >
+                    <HeaderBottomDrawer />
+                    {this.renderContent()}
+                </BottomDrawer>
+                <Modal isVisible={item.isModalVisible} style={{ margin: 0, padding: 0 }}
+                 backdropOpacity={1}
+                 animationIn={'zoomInDown'}
+                 animationOut={'zoomOutUp'}
+                 animationInTiming={1000}
+                 animationOutTiming={1000}
+                 backdropTransitionInTiming={1000}
+                 backdropTransitionOutTiming={1000}
+                >
+                    <View style={{ flex: 1, backgroundColor: 'white', borderRadius: 3 }}>
+                        <View style={{ flex: 1, alignItems: "center", justifyContent: 'center' }}>
+                            <Text style={{ fontSize: 28, color: 'blue' }} >Danh sách cảnh báo</Text>
+                        </View>
+                        <View style={{ flex: 0.6, width: 70, marginLeft: 300 }}>
+                            <TouchableOpacity style={{ width: 88, backgroundColor: '#2089dc', borderRadius: 3, height: 44, paddingLeft: 6, paddingTop: 4 }}
+                                onPress={() =>
+                                    this.closeModal()
+                                }
+                            >
+                                <AntDesign
+                                    raised
+                                    name='filter'
+                                    color='#f8fbfe'
+                                    size={28}
+                                />
+                                <Text style={{ marginLeft: 30, marginTop: -25, marginBottom: 5, color: '#f8fbfe', fontSize: 20 }}>Lọc</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={{ flex: 8.3, marginTop: 10 }}>
+                            <ScrollView>
+                                {item.FlatListTitle.map((val) => {
+                                    return (
+                                        <View key={val.value} style={{ height: 50, paddingLeft: 20 }}>
+                                            <CheckBox
+                                                containerStyle={{ backgroundColor: 'white', borderWidth: 0 }}
+                                                textStyle={{ fontWeight: "normal", fontSize: 22 }}
+                                                onPress={() => this.onclickcb(val.value)}
+                                                checked={item.checkBoxChecked.includes(val.value)}
+                                                title={val.value}
+                                            />
+                                        </View >
+                                    )
+                                }
+                                )}
+                            </ScrollView>
+                        </View>
+                    </View>
+                </Modal>
+            </View>
+        )
+    }
     renderContent = () => {
         return (
             <View style={{ flex: 1, flexDirection: "row" }}>
-
-                <View style={{ width: '8%', height: 30 }}>
-                    <MaterialIcons
-                        raised
-                        name='my-location'
-                        type='font-awesome'
-                        color='black'
-                        size={26}
-                        onPress={() => {
-                            this.location()
-                        }}
-                    />
-                </View>
+                <ContentBottomDrawer
+                location={this.location}
+                />
                 <View style={{ width: '92%' }}>
                     <View style={{ alignItems: 'center', height: 28, flexDirection: 'row' }}>
                         <View style={{ flex: 15, alignItems: "center", justifyContent: 'center' }}>
@@ -291,9 +364,7 @@ export default class Map extends Component {
                                     fontSize: 16,
                                     color: 'blue'
                                 }}
-                                onPress={() =>
-                                    this.props.navigation.navigate('Warning')}
-                                // onPress={this.toggleModal}
+                                onPress={this.toggleModal}
                             >
                                 Danh sách cảnh báo
                                 </Text>
@@ -304,113 +375,5 @@ export default class Map extends Component {
             </View>
         )
     }
-
-
-    render() {
-        var imagebackgroud = {
-            uri: "https://redpithemes.com/Documentation/assets/img/page_bg/page_bg_blur02.jpg"
-        };
-
-        const { latitude } = this.state;
-        const { longitude } = this.state;
-        const { FlatListTitle } = this.state;
-        const { Images } = this.state;
-        if (this.state.loader) {
-            return (
-                <ImageBackground source={imagebackgroud} style={{ width: '100%', height: '100%' }} >
-                    <BallIndicator color='white' />
-                </ImageBackground>
-            )
-        }
-        return (
-            <View style={{ flex: 1 }}>
-                <View style={{ flex: 3, backgroundColor: 'white' }}>
-                    <MapView
-                        style={{ flex: 1 }}
-                        region={this.state.region}
-                        onPress={this.onMapPress}
-                    >
-                        <Marker coordinate={this.state} title={"Vị trí của bạn"} >
-                            <Icon
-                                raised
-                                name='circle'
-                                type='font-awesome'
-                                color='#1D50CE'
-                                size={16}
-                                onPress={() => {
-                                    this.location()
-                                }}
-                            />
-                        </Marker>
-
-                        <Marker coordinate={{
-                            latitude: this.state.latitudenew,
-                            longitude: this.state.longitudenew
-                        }}
-                        />
-                        {Images.length > 0 && Images.map(marker => (
-                            <Marker
-                                coordinate={marker}
-                                title={marker.value}
-                            >
-                                <Image source={{ uri: marker.IconName }} style={{ width: 20, height: 20 }} />
-                            </Marker>
-                        ))}
-                    </MapView>
-                </View>
-                <BottomDrawer
-                    containerHeight={280}
-                    offset={TAB_BAR_HEIGHT}
-                    startUp={false}
-                >
-                    {this.renderHeader()}
-                    {this.renderContent()}
-                </BottomDrawer>
-
-                <Modal isVisible={this.state.isModalVisible}>
-                    <View style={{ flex: 1 }}>
-                        <ImageBackground source={imagebackgroud} style={{ width: '100%', height: '100%' }} >
-                            <View style={{ flex: 1, alignItems: "center", justifyContent: 'center' }}>
-                                <Text style={{ fontSize: 24, color: 'blue' }} >Danh sách cảnh báo</Text>
-                            </View>
-                            <View style={{ flex: 0.6, width: 70, marginLeft: 260 }}>
-                                <TouchableOpacity style={{ width: 70, backgroundColor: '#2089dc', borderRadius: 3, height: 36, paddingLeft: 6, paddingTop: 4 }}>
-                                    <AntDesign
-                                        raised
-                                        name='filter'
-                                        color='#f8fbfe'
-                                        size={26}
-
-                                    />
-                                    <Text style={{ marginLeft: 30, marginTop: -22, marginBottom: 5, color: '#f8fbfe' }}>Lọc</Text>
-                                </TouchableOpacity>
-                            </View>
-                            <View style={{ flex: 8.4 }}>
-                                {FlatListTitle.map((val) => {
-                                    { tempCheckValues[val.value] = false }
-                                    return (
-                                        <View key={val.value} style={{ height: 30, flexDirection: 'row', paddingLeft: 30 }}>
-                                            <ScrollView>
-                                                <View style={{ height: 30, flexDirection: 'column' }}>
-                                                    <CheckBox
-                                                        value={this.state.checkBoxChecked[val.value]}
-                                                        onValueChange={() => this.checkBoxChanged(val.value, this.state.checkBoxChecked[val.value])}
-                                                    />
-                                                    <Text style={{ paddingLeft: 40, marginTop: -26 }}>{val.value}</Text>
-                                                </View>
-                                            </ScrollView>
-                                        </View >
-                                    )
-                                }
-                                )}
-                            </View>
-                            <Button title="Quay trở về map" onPress={this.toggleModal} />
-                        </ImageBackground>
-
-                    </View>
-                </Modal>
-            </View>
-        )
-    }
-
 }
+

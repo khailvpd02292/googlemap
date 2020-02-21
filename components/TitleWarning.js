@@ -171,6 +171,6 @@ const styles = StyleSheet.create({
         borderRadius: 2,
         width: '90%',
         marginLeft: 20,
-        marginBottom: 10
+        marginBottom: 4
     }
 })

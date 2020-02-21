@@ -12,7 +12,7 @@ export default class SqliteHelper {
   }
 
   static openDB() {
-     db = SQLite.openDatabase({ name: "db_mapwarning6", location: 1 }, this.okCallback, this.errorCallback);
+    db = SQLite.openDatabase({ name: "db_mapwarning6", location: 1 }, this.okCallback, this.errorCallback);
     return db;
   }
 
@@ -25,11 +25,8 @@ export default class SqliteHelper {
       });
     });
   };
-
   static createTableTitleWaring = () => {
-    // return (this.createTable('CREATE TABLE IF NOT EXISTS "TitleWaring" ("IdTitle" INTEGER PRIMARY KEY AUTOINCREMENT,"value"	TEXT NOT NULL UNIQUE,"IconName" BLOB)'));
-    return (this.createTable( 'CREATE TABLE IF NOT EXISTS "TitleWaring" ( "value"	TEXT NOT NULL UNIQUE,"IconName"	BLOB,PRIMARY KEY("value"))')
-
+    return (this.createTable('CREATE TABLE IF NOT EXISTS "TitleWaring" ( "value"	TEXT NOT NULL UNIQUE,"IconName"	BLOB,PRIMARY KEY("value"))')
     );
   };
   static createTableMapWarning = () => {
@@ -47,35 +44,19 @@ export default class SqliteHelper {
     });
   };
 
-  static getImage = (key) => {
-    key = key || '';
+  static getImage = (keyword) => {
     return new Promise(function (resolve, reject) {
       db.transaction(tx => {
-        var sql = "SELECT MapWarning.value,MapWarning.latitude,MapWarning.longitude,TitleWaring.IconName  FROM MapWarning INNER JOIN TitleWaring ON MapWarning.value=TitleWaring.value";
-        var sqlite = "SELECT MapWarning.value,MapWarning.latitude,MapWarning.longitude,TitleWaring.IconName  FROM MapWarning INNER JOIN TitleWaring ON MapWarning.value=TitleWaring.value where value ='"+key+"'";
-       if(key == ''){
-        tx.executeSql(sql, [], (tx, results) => {
-          resolve(results);
-        });
-      }else{
-        tx.executeSql(sqlite, [], (tx, results) => {
-          resolve(results);
-        });
-      }
+          var sql = "SELECT MapWarning.value,MapWarning.latitude,MapWarning.longitude,TitleWaring.IconName FROM MapWarning INNER JOIN TitleWaring ON MapWarning.value=TitleWaring.value ";
+          if (keyword && keyword.length > 0) {
+            sql += `Where ${keyword.map(val => `MapWarning.value = '${val}'`).join("or ")}`;
+          }
+          tx.executeSql(sql, [], (tx, results) => {
+            resolve(results);
+          });
       });
     });
   };
-  // static getMapWarningUnique = () => {
-  //   return new Promise(function (resolve, reject) {
-  //     db.transaction(tx => {
-  //       var sql = "SELECT MapWarning.value,MapWarning.latitude,MapWarning.longitude,TitleWaring.IconName  FROM MapWarning INNER JOIN TitleWaring ON MapWarning.value=TitleWaring.value group by MapWarning.value";
-  //       tx.executeSql(sql, [], (tx, results) => {
-  //         resolve(results);
-  //       });
-  //     });
-  //   });
-  // };
-
 
   static getMapWarning = () => {
     return new Promise(function (resolve, reject) {
@@ -90,23 +71,19 @@ export default class SqliteHelper {
   static async addTitleWaring(value, IconName) {
     return await new Promise(function (resolve, reject) {
       db.transaction(tx => {
-        console.log('start')
-        console.log(value)
-        // console.log(IconName)
         var sql = "INSERT INTO TitleWaring (value,IconName) VALUES (?,?)";
         tx.executeSql(sql, [value, IconName], (tx, results) => {
-          console.log('add success')
           resolve(results);
         });
       })
     });
   };
 
-  static async addMapWarning(time,deviceId,value,latitude,longitude) {
+  static async addMapWarning(time, deviceId, value, latitude, longitude) {
     return await new Promise(function (resolve, reject) {
       db.transaction(tx => {
         var sql = "INSERT INTO MapWarning (time,deviceId,value,latitude,longitude) VALUES (?,?,?,?,?)";
-        tx.executeSql(sql, [time,deviceId,value,latitude,longitude], (tx, results) => {
+        tx.executeSql(sql, [time, deviceId, value, latitude, longitude], (tx, results) => {
           resolve(results);
         });
       })
