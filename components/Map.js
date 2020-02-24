@@ -21,7 +21,6 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import HeaderBottomDrawer from './HeaderBottomDrawer'
 import MapViews from './MapViews'
 import ContentBottomDrawer from './ContentBottomDrawer'
-// import ModalScreen from './ModalScreen'
 import {
     DotIndicator,
     BallIndicator,
@@ -30,7 +29,6 @@ import Loading from './Loading';
 SqliteHelper.openDB();
 const TAB_BAR_HEIGHT = 6;
 console.disableYellowBox = true;
-
 export default class Map extends Component {
     constructor(props) {
         super(props);
@@ -40,8 +38,8 @@ export default class Map extends Component {
             deviceId: null,
             latitude: 16.0282069,
             longitude: 108.2090777,
-            latitudenew: 0,
-            longitudenew: 0,
+            latitudenew: 16.0282069,
+            longitudenew: 108.2090777,
             title: '',
             FlatListTitle: [],
             loader: false,
@@ -58,6 +56,8 @@ export default class Map extends Component {
         this.create = this.create.bind(this)
         this.onMapPress = this.onMapPress.bind(this)
         this.location = this.location.bind(this)
+        this.closeModal = this.closeModal.bind(this)
+        this.toggleModal = this.toggleModal.bind(this)
         setInterval(() => {
             this.checklocation();
         }, 500);
@@ -112,7 +112,6 @@ export default class Map extends Component {
             FlatListTitle: listTemps
         });
     }
-
     getImage = async () => {
         const { checkBoxChecked } = this.state;
         var keyword = checkBoxChecked;
@@ -126,8 +125,6 @@ export default class Map extends Component {
             loader: false
         });
     }
-
-
     checklocation() {
         Geolocation.getCurrentPosition(position => {
             if (this.state.latitude != position.coords.latitude) {
@@ -174,7 +171,7 @@ export default class Map extends Component {
     }
     create() {
         const item = this.state;
-        console.log(item.value+'item.value')
+        console.log(item.value + 'item.value')
         if (item.value == null || item.value == '') {
             this.getDate()
             Alert.alert(
@@ -226,7 +223,6 @@ export default class Map extends Component {
                 checkBoxChecked: state.checkBoxChecked.filter(item => item !== value),
             }));
         }
-
     }
     closeModal() {
         this.getImage();
@@ -262,24 +258,31 @@ export default class Map extends Component {
                 >
                     <HeaderBottomDrawer />
                     {this.renderContent()}
+                    {/* <ContentBottomDrawer
+                        FlatListTitle={item.FlatListTitle}
+                        create={this.create}
+                        value={item.value}
+                        toggleModal={this.toggleModal}
+                        location={this.location}
+                    /> */}
                 </BottomDrawer>
                 <Modal isVisible={item.isModalVisible} style={{ margin: 0, padding: 0 }}
-                 backdropOpacity={1}
-                 animationIn={'zoomInDown'}
-                 animationOut={'zoomOutUp'}
-                 animationInTiming={1000}
-                 animationOutTiming={1000}
-                 backdropTransitionInTiming={1000}
-                 backdropTransitionOutTiming={1000}
+                    backdropOpacity={1}
+                    animationIn={'zoomInDown'}
+                    animationOut={'zoomOutUp'}
+                    animationInTiming={1000}
+                    animationOutTiming={1000}
+                    backdropTransitionInTiming={1000}
+                    backdropTransitionOutTiming={1000}
                 >
                     <View style={{ flex: 1, backgroundColor: 'white', borderRadius: 3 }}>
                         <View style={{ flex: 1, alignItems: "center", justifyContent: 'center' }}>
                             <Text style={{ fontSize: 28, color: 'blue' }} >Danh sách cảnh báo</Text>
                         </View>
-                        <View style={{ flex: 0.6, width: 70, marginLeft: 300 }}>
+                        <View style={{ flex: 0.8, width: '96%', alignItems: "flex-end" }}>
                             <TouchableOpacity style={{ width: 88, backgroundColor: '#2089dc', borderRadius: 3, height: 44, paddingLeft: 6, paddingTop: 4 }}
-                                onPress={() =>
-                                    this.closeModal()
+                                onPress={
+                                    this.closeModal
                                 }
                             >
                                 <AntDesign
@@ -317,9 +320,19 @@ export default class Map extends Component {
     renderContent = () => {
         return (
             <View style={{ flex: 1, flexDirection: "row" }}>
-                <ContentBottomDrawer
+                {/* <ContentBottomDrawer
                 location={this.location}
-                />
+                /> */}
+                <View style={{ width: '8%', height: 30 }}>
+                    <MaterialIcons
+                        raised
+                        name='my-location'
+                        type='font-awesome'
+                        color='black'
+                        size={26}
+                        onPress={this.location}
+                    />
+                </View>
                 <View style={{ width: '92%' }}>
                     <View style={{ alignItems: 'center', height: 28, flexDirection: 'row' }}>
                         <View style={{ flex: 15, alignItems: "center", justifyContent: 'center' }}>
@@ -371,7 +384,6 @@ export default class Map extends Component {
                         </View>
                     </View>
                 </View>
-
             </View>
         )
     }
