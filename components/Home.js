@@ -3,17 +3,15 @@ import {
     Text, View, TouchableOpacity, SafeAreaView, ScrollView, Image, FlatList,
     ImageBackground, Animated, Alert, Dimensions, StyleSheet
 } from 'react-native';
-import MapView, { PROVIDER_GOOGLE, Marker, AnimatedRegion } from 'react-native-maps';
-import { Button } from 'react-native-elements'
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { Button, CheckBox } from 'react-native-elements'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import IconEntypo from 'react-native-vector-icons/Entypo';
 import Geolocation from '@react-native-community/geolocation';
 import SqliteHelper from '../hepper/sqlite.helper';
 import Modal from "react-native-modal";
 import { Dropdown } from 'react-native-material-dropdown';
-import { CheckBox } from 'react-native-elements'
 import BottomDrawer from 'rn-bottom-drawer';
 let uniqueId = DeviceInfo.getUniqueId();
 import DeviceInfo from 'react-native-device-info';
@@ -21,25 +19,24 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import HeaderBottomDrawer from './HeaderBottomDrawer'
 import MapViews from './MapViews'
 import ContentBottomDrawer from './ContentBottomDrawer'
+import ModalScreen from './ModalScreen'
 import {
     DotIndicator,
     BallIndicator,
 } from 'react-native-indicators';
 import Loading from './Loading';
-SqliteHelper.openDB();
 const TAB_BAR_HEIGHT = 6;
 console.disableYellowBox = true;
 export default class Map extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            time: '',
             value: '',
             deviceId: null,
             latitude: 16.0282069,
             longitude: 108.2090777,
-            latitudenew: 16.0282069,
-            longitudenew: 108.2090777,
+            latitudenew: 0,
+            longitudenew: 0,
             title: '',
             FlatListTitle: [],
             loader: false,
@@ -51,7 +48,7 @@ export default class Map extends Component {
                 longitude: 108.2090777,
                 latitudeDelta: 0.01,
                 longitudeDelta: 0.01,
-            }
+            },
         }
         this.create = this.create.bind(this)
         this.onMapPress = this.onMapPress.bind(this)
@@ -75,55 +72,72 @@ export default class Map extends Component {
             loader: true,
             deviceId: uniqueId
         })
-        SqliteHelper.createTableTitleWaring();
-        SqliteHelper.createTableMapWarning();
-        this.getTitleWaring();
-        this.getImage();
-        this.getDate()
         this.location();
+        this.getTitleWaring();
+        this.getWarning();
 
     }
     componentDidMount() {
         const { navigation } = this.props;
         this.focusListener = navigation.addListener('didFocus', () => {
             this.getTitleWaring();
-            this.getImage()
-        });
-    }
-    getDate() {
-        var date = new Date().getDate();
-        var month = new Date().getMonth() + 1;
-        var year = new Date().getFullYear();
-        var hours = new Date().getHours();
-        var min = new Date().getMinutes();
-        var sec = new Date().getSeconds();
-        this.setState({
-            time:
-                date + '/' + month + '/' + year + ' ' + hours + ':' + min + ':' + sec,
+            this.getWarning()
         });
     }
     getTitleWaring = async () => {
-        let listTemps = [];
-        let temp = await SqliteHelper.getTitleWaring();
-        for (let i = 0; i < temp.rows.length; i++) {
-            listTemps.push(temp.rows.item(i));
-        };
-        this.setState({
-            FlatListTitle: listTemps
-        });
+        fetch('http://192.168.56.1:3000/title', {
+            method: 'GET'
+        })
+            .then(response => response.json())
+            .then((responseJson) => {
+                this.setState({
+                    FlatListTitle: [...responseJson]
+                })
+            })
+            .catch(error => console.log(error))
     }
-    getImage = async () => {
+    addWarning(deviceId, value, latitude, longitude) {
+        var dataToSend = { deviceId: deviceId, value: value, latitude: latitude, longitude: longitude };
+        var formBody = [];
+        for (var key in dataToSend) {
+            var encodedKey = encodeURIComponent(key);
+            var encodedValue = encodeURIComponent(dataToSend[key]);
+            formBody.push(encodedKey + "=" + encodedValue);
+        }
+        formBody = formBody.join("&");
+        fetch('http://192.168.56.1:3000/warning', {
+            method: "POST",
+            body: formBody,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+            },
+        })
+            .then((response) => response.json())
+            .then((responseJson) => {
+                console.log(responseJson);
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }
+    getWarning = async (keyword) => {
+        var http = `http://192.168.56.1:3000/warning`;
         const { checkBoxChecked } = this.state;
         var keyword = checkBoxChecked;
-        let listTempp = [];
-        let tempp = await SqliteHelper.getImage(keyword);
-        for (let i = 0; i < tempp.rows.length; i++) {
-            listTempp.push(tempp.rows.item(i));
-        };
-        this.setState({
-            Images: listTempp,
-            loader: false
-        });
+        if (keyword && keyword.length > 0) {
+            http += `?${keyword.map(t => `value=${t}`).join("&")}`
+        }
+        fetch(http, {
+            method: 'GET'
+        })
+            .then(response => response.json())
+            .then((responseJson) => {
+                this.setState({
+                    Images: [...responseJson],
+                    loader: false
+                })
+            })
+            .catch(error => console.log(error))
     }
     checklocation() {
         Geolocation.getCurrentPosition(position => {
@@ -131,7 +145,13 @@ export default class Map extends Component {
                 this.setState({
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
-                    error: null
+                    error: null,
+                    region: {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        latitudeDelta: 0.01,
+                        longitudeDelta: 0.01,
+                    }
                 });
             }
         },
@@ -171,20 +191,16 @@ export default class Map extends Component {
     }
     create() {
         const item = this.state;
-        console.log(item.value + 'item.value')
         if (item.value == null || item.value == '') {
-            this.getDate()
             Alert.alert(
                 'Thêm thất bại',
                 'Vui lòng chọn cảnh báo',
             )
-
         } else if (item.latitudenew == 0) {
             Alert.alert(
                 'Thêm thất bại',
                 'Vui lòng chọn vị trí cần cảnh báo trên bản đồ',
             )
-
         } else {
             Alert.alert(
                 'Thông báo',
@@ -196,22 +212,20 @@ export default class Map extends Component {
                     },
                     {
                         text: 'OK', onPress: () => {
-                            this.getDate(),
-                                SqliteHelper.addMapWarning(this.state.time, this.state.deviceId, this.state.value, this.state.latitudenew, this.state.longitudenew)
+                            this.addWarning(item.deviceId, item.value, item.latitudenew, item.longitudenew)
                             this.setState({
                                 latitudenew: 0,
                                 longitudenew: 0,
                             })
-                            this.getImage();
+                            this.getWarning();
                         }
                     },
                 ],
                 { cancelable: false },
             );
-
         }
     }
-    onclickcb = value => {
+    onclickcb = (value) => {
         const { checkBoxChecked } = this.state;
         const isInclude = checkBoxChecked.includes(value);
         if (!isInclude) {
@@ -225,13 +239,10 @@ export default class Map extends Component {
         }
     }
     closeModal() {
-        this.getImage();
+        this.getWarning();
         this.toggleModal();
     }
     render() {
-        var imagebackgroud = {
-            uri: "https://redpithemes.com/Documentation/assets/img/page_bg/page_bg_blur02.jpg"
-        };
         const item = this.state;
         if (item.loader) {
             return (
@@ -243,7 +254,7 @@ export default class Map extends Component {
                 <View style={{ flex: 3, backgroundColor: 'white' }}>
                     <MapViews
                         Images={item.Images}
-                        region={this.state.region}
+                        region={item.region}
                         latitude={item.latitude}
                         longitude={item.longitude}
                         latitudenew={item.latitudenew}
@@ -261,11 +272,12 @@ export default class Map extends Component {
                     {/* <ContentBottomDrawer
                         FlatListTitle={item.FlatListTitle}
                         create={this.create}
-                        value={item.value}
+                        a={item.value}
                         toggleModal={this.toggleModal}
                         location={this.location}
+                        navigation={this.props.navigation}
                     /> */}
-                </BottomDrawer>
+                </BottomDrawer>           
                 <Modal isVisible={item.isModalVisible} style={{ margin: 0, padding: 0 }}
                     backdropOpacity={1}
                     animationIn={'zoomInDown'}
@@ -281,9 +293,7 @@ export default class Map extends Component {
                         </View>
                         <View style={{ flex: 0.8, width: '96%', alignItems: "flex-end" }}>
                             <TouchableOpacity style={{ width: 88, backgroundColor: '#2089dc', borderRadius: 3, height: 44, paddingLeft: 6, paddingTop: 4 }}
-                                onPress={
-                                    this.closeModal
-                                }
+                                onPress={this.closeModal}
                             >
                                 <AntDesign
                                     raised
@@ -300,7 +310,7 @@ export default class Map extends Component {
                                     return (
                                         <View key={val.value} style={{ height: 50, paddingLeft: 20 }}>
                                             <CheckBox
-                                                containerStyle={{ backgroundColor: 'white', borderWidth: 0 }}
+                                                containerStyle={{ backgroundColor: 'white', borderWidth: 0, width: 250 }}
                                                 textStyle={{ fontWeight: "normal", fontSize: 22 }}
                                                 onPress={() => this.onclickcb(val.value)}
                                                 checked={item.checkBoxChecked.includes(val.value)}
@@ -320,9 +330,6 @@ export default class Map extends Component {
     renderContent = () => {
         return (
             <View style={{ flex: 1, flexDirection: "row" }}>
-                {/* <ContentBottomDrawer
-                location={this.location}
-                /> */}
                 <View style={{ width: '8%', height: 30 }}>
                     <MaterialIcons
                         raised

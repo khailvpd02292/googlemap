@@ -6,9 +6,7 @@ import {
 import MapView, { PROVIDER_GOOGLE, Marker, AnimatedRegion } from 'react-native-maps';
 import Icon from 'react-native-vector-icons/FontAwesome';
 export class MapViews extends Component {
-    
     render() {
-
         return (
             <MapView
                 style={{ flex: 1 }}
@@ -42,7 +40,7 @@ export class MapViews extends Component {
                         coordinate={marker}
                         title={marker.value}
                     >
-                        <Image source={{ uri: marker.IconName }} style={{ width: 20, height: 20 }} />
+                        <Image source={{ uri: marker.Icon }} style={{ width: 20, height: 20 }} />
                     </Marker>
                 ))}
             </MapView>

@@ -9,15 +9,15 @@ import {
 import validator from 'validator';
 import { Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import SqliteHelper from '../hepper/sqlite.helper'
 import { FlatList } from 'react-native-gesture-handler';
 import ImagePicker from 'react-native-image-picker';
-SqliteHelper.openDB();
+import Chosefile from './Chosefile'
 const options = {
     title: 'Chọn hình ảnh',
     takePhotoButtonTitle: 'Máy ảnh',
     chooseFromLibraryButtonTitle: 'Chọn từ thư viện ảnh',
 };
+
 export default class TitleWarning extends Component {
 
     constructor(props) {
@@ -25,24 +25,51 @@ export default class TitleWarning extends Component {
         this.state = {
             value: '',
             FlatListTitle: [],
-            title: '',
-            IconName: '',
+            Icon: '',
         },
             this.create = this.create.bind(this);
-
+        this.ImagePicker = this.ImagePicker.bind(this)
+    }
+    getDataUsingPost(value, Icon) {
+        var dataToSend = { value: value, Icon: Icon };
+        var formBody = [];
+        for (var key in dataToSend) {
+            var encodedKey = encodeURIComponent(key);
+            var encodedValue = encodeURIComponent(dataToSend[key]);
+            formBody.push(encodedKey + "=" + encodedValue);
+        }
+        formBody = formBody.join("&");
+        fetch('http://192.168.56.1:3000/title', {
+            method: "POST",
+            body: formBody,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+            },
+        })
+            .then((response) => response.json())
+            .then((responseJson) => {
+                // console.log(responseJson);
+            })
+            .catch((error) => {
+                alert(JSON.stringify(error));
+                console.error(error);
+            });
     }
 
-    UNSAFE_componentWillMount = async () => {
-        let listTemp = [];
-        let temp = await SqliteHelper.getTitleWaring();
-        for (let i = 0; i < temp.rows.length; i++) {
-            listTemp.push(temp.rows.item(i));
-        };
-        this.setState({
-            FlatListTitle: listTemp
-        });
+    getTitleWaring = async () => {
+        fetch('http://192.168.56.1:3000/title')
+            .then(response => response.json())
+            .then((responseJson) => {
+                this.setState({
+                    FlatListTitle: [...responseJson]
+                })
+            })
+            .catch(error => console.log(error))
     }
 
+    UNSAFE_componentWillMount = () => {
+        this.getTitleWaring();
+    }
     clearText = () => {
         this._textInput.setNativeProps({ text: '' });
     }
@@ -55,16 +82,21 @@ export default class TitleWarning extends Component {
                     'Thêm thất bại',
                     'Dữ liệu đã tồn tại',
                 ),
-                    this.clearText());
+                    this.clearText(),
+                    this.setState({
+                        Icon: '',
+                    })
+                );
             }
         }
+
         if (validator.isEmpty(cutspace) || cutspace == '') {
             Alert.alert(
                 'Thêm thất bại',
                 'Vui lòng không để trống trường cảnh báo',
             )
 
-        } else if (this.state.IconName == '') {
+        } else if (this.state.Icon == '') {
             Alert.alert(
                 'Thêm thất bại',
                 'Vui lòng chọn hình ảnh phù hợp',
@@ -79,9 +111,8 @@ export default class TitleWarning extends Component {
                         style: 'cancel',
                     },
                     {
-
                         text: 'OK', onPress: () => {
-                            SqliteHelper.addTitleWaring(cutspace, this.state.IconName)
+                            this.getDataUsingPost(cutspace, this.state.Icon);
                             this.props.navigation.navigate('Map')
                         }
                     },
@@ -90,7 +121,7 @@ export default class TitleWarning extends Component {
             );
         }
     }
-    myfuc = () => {
+    ImagePicker = () => {
         ImagePicker.showImagePicker(options, (response) => {
             if (response.didCancel) {
                 console.log('User cancelled image picker');
@@ -99,27 +130,23 @@ export default class TitleWarning extends Component {
             } else if (response.customButton) {
                 console.log('User tapped custom button: ', response.customButton);
             } else {
-                const source = response.uri;
-                // const source =  'data:image/jpeg;base64,' + response.data ;
-
+                const source = 'data:image/jpeg;base64,' + response.data;
                 this.setState({
-                    IconName: source,
+                    Icon: source,
                 });
             }
         });
     }
-
-    render() {
+  render() {
         var imagebackgrouds = {
             uri: "https://redpithemes.com/Documentation/assets/img/page_bg/page_bg_blur02.jpg"
         };
-        const { showAlert } = this.state;
         return (
-            <View>
+            <View style={{ flex: 1 }}>
                 <ImageBackground source={imagebackgrouds} style={{ width: '100%', height: '100%' }} >
                     <TouchableWithoutFeedback style={{ flex: 1, flexDirection: 'column' }} onPress={Keyboard.dismiss} >
                         <View style={{ flex: 1, flexDirection: 'column' }}>
-                            <View style={{ flex: 1, marginTop: 40 }}>
+                            <View style={{ flex: 1, marginTop: 40, marginBottom: 14 }}>
                                 <TextInput style={styles.inputs}
                                     placeholder="Nhập tên cảnh báo"
                                     placeholderTextColor="gray"
@@ -131,23 +158,17 @@ export default class TitleWarning extends Component {
                                 <View style={styles.buttons}>
                                     <Button
                                         onPress={this.create}
-                                        title="Thêm mới"/> 
-                                </View>
-                                <View style={styles.buttons}>
-                                    <Button title="Chọn ảnh"
-                                        onPress={() => this.myfuc()} />
+                                        title="Thêm mới" />
                                 </View>
                             </View>
-                            <View style={{ flex: 2.1, margin: 'auto',alignItems:"center"}}>
-                                <View style={{width:100,height:100,marginTop:80}}>
-                                    <Image source={{ uri: this.state.IconName }} style={{ width: '80%', height: '100%'}} />
-                                </View>
+                            <View style={{ flex: 2.1, margin: 'auto', alignItems: "center", marginTop: 40 }}>
+                                <Chosefile
+                                ImagePicker={this.ImagePicker}
+                                Icon={this.state.Icon}
+                                />
                             </View>
-
                         </View>
-
                     </TouchableWithoutFeedback>
-
                 </ImageBackground>
             </View>
         )

@@ -3,8 +3,14 @@ import { Text, View, Button, TouchableOpacity } from 'react-native'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import { Dropdown } from 'react-native-material-dropdown';
+
 export class ContentBottomDrawer extends Component {
- 
+    constructor(props) {
+        super(props);
+        this.state = {
+            value: ''
+        }
+    }
     render() {
         return (
             <View style={{ flex: 1, flexDirection: "row" }}>
@@ -46,10 +52,8 @@ export class ContentBottomDrawer extends Component {
                                 <Dropdown
                                     label='Chọn cảnh báo phù hợp'
                                     data={this.props.FlatListTitle}
-                                    onChangeText={value => this.setState({ value }),
-                                        console.log('value1' + this.state.value)
-                                    }
-                                    value={this.state.value}
+                                    onChangeText={value => this.setState({ value })}
+                                    value={this.props.value}
                                     baseColor='#191616'
                                 />
                             </View>
